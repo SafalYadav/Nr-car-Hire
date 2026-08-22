@@ -687,12 +687,16 @@ export class AiAgentService {
       const allVehicles = await vehicleStore.list({ limit: 100 });
       const state = extractConversationState(messages, allVehicles.vehicles);
 
+      const targetTrans = state.transmission;
+      const minSeats = state.seatsMin;
+      const maxRate = state.maxDailyRate;
+
       const filtered = result.suggestedVehicles.filter((v) => {
-        if (state.transmission && state.transmission !== 'Any') {
-          if (v.transmission.toLowerCase() !== state.transmission.toLowerCase()) return false;
+        if (targetTrans && targetTrans !== 'Any') {
+          if (v.transmission.toLowerCase() !== targetTrans.toLowerCase()) return false;
         }
-        if (state.seatsMin && v.seats < state.seatsMin) return false;
-        if (state.maxDailyRate && v.dailyRate > state.maxDailyRate) return false;
+        if (minSeats !== null && minSeats !== undefined && v.seats < minSeats) return false;
+        if (maxRate !== null && maxRate !== undefined && v.dailyRate > maxRate) return false;
         return true;
       });
 
@@ -702,15 +706,23 @@ export class AiAgentService {
 
         let reason = '';
         if (
-          state.transmission &&
-          state.transmission !== 'Any' &&
-          removed.some((v) => v.transmission.toLowerCase() !== state.transmission.toLowerCase())
+          targetTrans &&
+          targetTrans !== 'Any' &&
+          removed.some((v) => v.transmission.toLowerCase() !== targetTrans.toLowerCase())
         ) {
-          reason = `${state.transmission.toLowerCase()} transmission`;
-        } else if (state.seatsMin && removed.some((v) => v.seats < state.seatsMin)) {
-          reason = `minimum ${state.seatsMin} seats`;
-        } else if (state.maxDailyRate && removed.some((v) => v.dailyRate > state.maxDailyRate)) {
-          reason = `maximum budget of ₹${state.maxDailyRate}/day`;
+          reason = `${targetTrans.toLowerCase()} transmission`;
+        } else if (
+          minSeats !== null &&
+          minSeats !== undefined &&
+          removed.some((v) => v.seats < minSeats)
+        ) {
+          reason = `minimum ${minSeats} seats`;
+        } else if (
+          maxRate !== null &&
+          maxRate !== undefined &&
+          removed.some((v) => v.dailyRate > maxRate)
+        ) {
+          reason = `maximum budget of ₹${maxRate}/day`;
         }
 
         const removedNames = removed.map((v) => `${v.year} ${v.make} ${v.model}`).join(' and ');

@@ -1,34 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NR Car Hire
 
-## Getting Started
+Premium Australian car-hire platform.
 
-First, run the development server:
+## Project Documents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Always read these six files before significant project work:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. `PRD.md`
+2. `architecture.md`
+3. `README.md`
+4. `phase.md`
+5. `design.md`
+6. `memory.md`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`memory.md` is the living implementation-state document.
 
-## Learn More
+## Development Rules
 
-To learn more about Next.js, take a look at the following resources:
+- Inspect existing code before changing it.
+- Do not rebuild existing functionality.
+- Do not invent requirements that conflict with project documents.
+- Keep business logic server-side.
+- Validate all external input.
+- Never hardcode secrets.
+- Never commit real credentials.
+- Never expose internal errors to customers.
+- Do not claim unverified work is complete.
+- Keep dependencies purposeful.
+- Prefer simple, maintainable solutions over unnecessary abstraction.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Security
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Security is a priority.
 
-## Deploy on Vercel
+Required principles:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Secure authentication
+- Server-side authorization
+- Input validation
+- Rate limiting strategy
+- Secure cookies/sessions
+- Security headers
+- Secret management
+- Safe error handling
+- File-upload security
+- Dependency auditing
+- Least privilege
+- Payment webhook verification
+- Idempotency
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## AI Limitations / Rules
+
+AI must not:
+
+- Assume documentation means implementation.
+- Assume an integration is connected without verification.
+- Fake test results.
+- Fake AWS configuration.
+- Fake payment configuration.
+- Rewrite working code unnecessarily.
+- Add unnecessary dependencies.
+- Mark features VERIFIED without testing.
+
+AI must read `memory.md` before work and update it after every project run.
+
+## Design
+
+Follow `design.md` for all visual decisions.
+
+## Quality
+
+Before considering work complete:
+
+- TypeScript/build passes
+- Lint passes
+- Relevant tests pass
+- No secrets are committed
+- Existing functionality is not broken
+- Documentation reflects actual state
