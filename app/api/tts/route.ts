@@ -10,35 +10,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
     }
 
-    const VOICE_ID = process.env.ELEVENLABS_VOICE_ID?.trim();
-    const API_KEY = process.env.ELEVENLABS_API_KEY?.trim();
+    const sanitizeEnv = (val?: string) =>
+      val ? val.trim().replace(/^["\x27]|["\x27]$/g, '').trim() : '';
 
-    if (!API_KEY || !VOICE_ID) {
+    let VOICE_ID = sanitizeEnv(process.env.ELEVENLABS_VOICE_ID);
+    const API_KEY = sanitizeEnv(process.env.ELEVENLABS_API_KEY);
+
+    if (!API_KEY) {
       return NextResponse.json(
         { error: 'ElevenLabs configuration is missing' },
         { status: 503 },
       );
     }
 
-    // Using ElevenLabs Streaming API for lowest latency
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`, {
-      method: 'POST',
-      headers: {
-        Accept: 'audio/mpeg',
-        'xi-api-key': API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.0,
-          use_speaker_boost: true,
+    // Default pre-made high-quality conversational voice if not provided
+    if (!VOICE_ID) {
+      VOICE_ID = 'EXAVITQu4vr4xnSDxMaL'; // Sarah - Warm & Professional
+    }
+
+    const callElevenLabs = async (voice: string) => {
+      return fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice}/stream`, {
+        method: 'POST',
+        headers: {
+          Accept: 'audio/mpeg',
+          'xi-api-key': API_KEY,
+          'Content-Type': 'application/json',
         },
-      }),
-    });
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            style: 0.0,
+            use_speaker_boost: true,
+          },
+        }),
+      });
+    };
+
+    let response = await callElevenLabs(VOICE_ID);
+
+    // If configured voice is a paid library voice rejected with 402 on a free plan, fallback to standard premade voice
+    if (response.status === 402 && VOICE_ID !== 'EXAVITQu4vr4xnSDxMaL') {
+      logger.info('ElevenLabs library voice requires paid plan, falling back to standard voice EXAVITQu4vr4xnSDxMaL');
+      response = await callElevenLabs('EXAVITQu4vr4xnSDxMaL');
+    }
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
