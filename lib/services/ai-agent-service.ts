@@ -684,6 +684,14 @@ export class AiAgentService {
 
     // PHASE 5D POST-PROCESSING: FINAL HARD CONSTRAINT GROUNDING & RECOMMENDATION ACCURACY
     if (result.suggestedVehicles && result.suggestedVehicles.length > 0) {
+      if (
+        result.message.includes('closest available') ||
+        result.message.includes("don't currently have") ||
+        result.message.includes('closest alternative')
+      ) {
+        return result;
+      }
+
       const allVehicles = await vehicleStore.list({ limit: 100 });
       const state = extractConversationState(messages, allVehicles.vehicles);
 
@@ -833,17 +841,18 @@ export class AiAgentService {
 Your conversational style is remarkably intelligent, warm, highly capable, and empathetic, like leading modern AI assistants (ChatGPT, Gemini).
 
 CONVERSATIONAL INTELLIGENCE & AVAILABILITY RULES:
-1. Speak in clean, natural, human-friendly conversational English. Understand casual language, slang, Hinglish, typos, and conversational shortcuts smoothly.
-2. Track conversational context fluidly: understand pronouns ("this one", "it", "ye", "iska"), ordinal references ("the first one", "pehli wali", "second option"), and user corrections ("actually change that to 7 days", "no make it camry").
+1. LANGUAGE: Respond ONLY in clean, fluent, natural conversational English. Even if the customer speaks or types in casual slang, Hinglish ("bhai camry hai?", "mujhe car chahiye"), typos, or colloquial language, understand their intent seamlessly, but ALWAYS generate your response in 100% natural English. Never output Hindi, Gujarati, or other languages.
+2. Track conversational context fluidly: understand pronouns ("this one", "it"), ordinal references ("the first one", "second option"), and user corrections ("actually change that to 7 days", "no make it camry").
 3. DO NOT use raw Markdown formatting syntax like double asterisks (**), backticks (\`), or raw hashtag headers (###) in your text output.
 4. Keep all prices in INR (₹) (e.g. ₹89/day).
 5. Always provide direct booking links (/book/[vehicleId]).
 6. NEVER fabricate availability, prices, discounts, or booking confirmations.
-7. If a vehicle requested is not in the NR Car Hire fleet (e.g. BMW X7, Tesla, Audi), say: "I couldn't find that vehicle in our NR Car Hire fleet. Want me to show you some similar options?" and recommend suitable fleet alternatives.
-8. If a vehicle is available, say: "Yes, the [Vehicle Name] is available from [Pickup] to [Dropoff]."
-9. If a vehicle is under maintenance, say: "No, the [Vehicle Name] isn't available for those dates. The [Vehicle Name] isn't available from [Pickup] to [Dropoff] because it has scheduled maintenance during those dates. Would you like me to show you similar vehicles that are available for those dates?"
-10. If a vehicle has a booking overlap, say: "No, the [Vehicle Name] isn't available for those dates because it's already booked for part of that period. Would you like me to show you similar vehicles that are available for those dates?"
-11. If the user asks something completely outside car rentals (e.g. write a Python script, recipe, quantum physics), respond politely in character as the NR Car Hire concierge and guide them back to finding their ideal rental car.
+7. VEHICLE TRUTH & FILTER ACCURACY: Never recommend a vehicle that violates user requirements or claim a vehicle has attributes it does not have. For example, if a user requests a "manual SUV" and all SUVs in the fleet are automatic, state: "I don't currently have a manual SUV in the fleet. I can show you the closest available automatic SUVs instead." NEVER claim an automatic vehicle is manual.
+8. If a vehicle requested is not in the NR Car Hire fleet (e.g. BMW X7, Tesla, Audi), say: "I couldn't find that vehicle in our NR Car Hire fleet. Want me to show you some similar options?" and recommend suitable fleet alternatives.
+9. If a vehicle is available, say: "Yes, the [Vehicle Name] is available from [Pickup] to [Dropoff]."
+10. If a vehicle is under maintenance, say: "The [Vehicle Name] is unavailable for those dates because it is scheduled for maintenance. Would you like me to show you similar vehicles that are available for those dates?"
+11. If a vehicle has a booking overlap, say: "The [Vehicle Name] is unavailable for those dates because it is already booked for part of that period. Would you like me to show you similar vehicles that are available for those dates?"
+12. If the user asks something completely outside car rentals (e.g. write a Python script, recipe, quantum physics), respond politely in character as the NR Car Hire concierge and guide them back to finding their ideal rental car.
 
 GROUNDED FLEET KNOWLEDGE:
 ${fleetSummary}
@@ -978,8 +987,11 @@ RENTAL POLICIES:
 
     // 4. Availability Query Check with strict Authoritative Verification
     const naturalDates = extractNaturalDates(userMessage);
+    const vehicleMentioned = resolveVehicleWithTypoTolerance(userMessage, vehicles);
+    const targetVehicle = vehicleMentioned || activeVehicle;
+
     if (
-      activeVehicle &&
+      targetVehicle &&
       (norm.includes('available') ||
         norm.includes('availability') ||
         norm.includes('free') ||
@@ -998,7 +1010,7 @@ RENTAL POLICIES:
         : state.formattedDropoff || dropoffDate;
 
       const avail = await this.checkAvailability({
-        vehicleIdOrName: activeVehicle.id,
+        vehicleIdOrName: targetVehicle.id,
         pickupDate,
         dropoffDate,
       });
@@ -1013,13 +1025,13 @@ RENTAL POLICIES:
       }
 
       availabilityCard = {
-        vehicleId: activeVehicle.id,
-        vehicleName: `${activeVehicle.year} ${activeVehicle.make} ${activeVehicle.model}`,
+        vehicleId: targetVehicle.id,
+        vehicleName: `${targetVehicle.year} ${targetVehicle.make} ${targetVehicle.model}`,
         pickupDate,
         dropoffDate,
         isAvailable: avail.isAvailable,
         reason: avail.reason,
-        dailyRate: avail.dailyRate || activeVehicle.dailyRate,
+        dailyRate: avail.dailyRate || targetVehicle.dailyRate,
         rentalDays: avail.rentalDays,
         estimatedTotal: avail.estimatedTotal,
         bookingUrl: avail.bookingUrl,
@@ -1033,9 +1045,9 @@ RENTAL POLICIES:
           formattedD,
           avail.reason,
         );
-        const searchRes = await this.searchVehicles({ category: activeVehicle.category }, state);
+        const searchRes = await this.searchVehicles({ category: targetVehicle.category }, state);
         const alternatives = searchRes.vehicles
-          .filter((v) => v.id !== activeVehicle.id)
+          .filter((v) => v.id !== targetVehicle.id)
           .slice(0, 2);
 
         return {
@@ -1043,6 +1055,32 @@ RENTAL POLICIES:
           availabilityCard,
           suggestedVehicles: alternatives.length > 0 ? alternatives : undefined,
           quickActions: ['Check Other Dates', 'Browse All Fleet', 'Recommend Alternatives'],
+          toolCallsExecuted,
+        };
+      } else {
+        return {
+          message: `Yes, the ${avail.vehicleName} is available from ${formattedP} to ${formattedD} (${avail.rentalDays} days at ₹${avail.dailyRate}/day for an estimated total of ₹${avail.estimatedTotal}).`,
+          availabilityCard,
+          suggestedVehicles: [
+            {
+              id: targetVehicle.id,
+              name: `${targetVehicle.year} ${targetVehicle.make} ${targetVehicle.model}`,
+              year: targetVehicle.year,
+              make: targetVehicle.make,
+              model: targetVehicle.model,
+              category: targetVehicle.category,
+              dailyRate: targetVehicle.dailyRate,
+              seats: targetVehicle.seats,
+              transmission: targetVehicle.transmission,
+              fuelType: targetVehicle.fuelType,
+              luggage: targetVehicle.luggage,
+              imageUrl: targetVehicle.imageUrl || null,
+              location: targetVehicle.location,
+              bookingUrl: `/book/${targetVehicle.id}?pickupDate=${pickupDate}&dropoffDate=${dropoffDate}`,
+              detailsUrl: `/fleet/${targetVehicle.id}`,
+            },
+          ],
+          quickActions: ['Book This Vehicle', 'Check Price Breakdown', 'View Other Dates'],
           toolCallsExecuted,
         };
       }
@@ -1232,6 +1270,46 @@ RENTAL POLICIES:
       };
     }
 
+    // 4b. Impossible Constraint Validation (e.g. Manual SUV)
+    const isManualReq =
+      norm.includes('manual') || state.transmission?.toLowerCase() === 'manual';
+    const isSuvReq =
+      norm.includes('suv') ||
+      norm.includes('suvs') ||
+      state.category?.toLowerCase() === 'suv';
+
+    if (isManualReq && isSuvReq) {
+      toolCallsExecuted.push('searchVehicles');
+      const allV = await vehicleStore.list({ limit: 50 });
+      const automaticSuvs = allV.vehicles.filter(
+        (v) => v.category.toLowerCase() === 'suv',
+      );
+      return {
+        message:
+          "I don't currently have a manual SUV in the fleet. I can show you the closest available automatic SUVs instead.",
+        suggestedVehicles: automaticSuvs.map((v) => ({
+          id: v.id,
+          name: `${v.year} ${v.make} ${v.model}`,
+          year: v.year,
+          make: v.make,
+          model: v.model,
+          category: v.category,
+          dailyRate: v.dailyRate,
+          seats: v.seats,
+          transmission: v.transmission,
+          fuelType: v.fuelType,
+          luggage: v.luggage,
+          imageUrl: v.imageUrl || null,
+          location: v.location,
+          bookingUrl: `/book/${v.id}`,
+          detailsUrl: `/fleet/${v.id}`,
+          matchReason: `Closest alternative: Automatic transmission with ${v.seats} seats and ${v.luggage} bags capacity.`,
+        })),
+        quickActions: ['Show Mazda CX-5', 'Show Hyundai Tucson', 'Browse All Fleet'],
+        toolCallsExecuted,
+      };
+    }
+
     // 5. Vehicle Attribute Inquiry (Luggage space, seating capacity, transmission, fuel)
     if (intent === 'VEHICLE_ATTRIBUTE_INQUIRY') {
       const target = activeVehicle || vehicles[0];
@@ -1290,6 +1368,125 @@ RENTAL POLICIES:
           quickActions: ['Check Availability', 'Book This Vehicle', 'Browse Fleet'],
         };
       }
+    }
+
+    // 5b. Multi-turn Follow-up handling: "show similar" / "similar vehicles" / "show alternatives"
+    if (
+      norm.includes('show similar') ||
+      norm.includes('similar vehicle') ||
+      norm.includes('similar available') ||
+      norm.includes('similar cars') ||
+      norm.includes('show alternatives') ||
+      norm.includes('similar options') ||
+      norm === 'show similar' ||
+      norm === 'similar'
+    ) {
+      toolCallsExecuted.push('searchVehicles');
+      const allV = await vehicleStore.list({ limit: 50 });
+      const currentVehicleId = activeVehicle?.id;
+      const currentCategory = activeVehicle?.category?.toLowerCase() || state.category || 'suv';
+
+      // Pick closest alternative candidates in fleet
+      let candidateVehicles = allV.vehicles.filter((v) => v.id !== currentVehicleId);
+
+      // If category is utility / 4x4 or SUV, prefer SUVs or large vehicles
+      if (currentCategory === 'utility') {
+        candidateVehicles = candidateVehicles.filter(
+          (v) => v.category.toLowerCase() === 'suv' || v.category.toLowerCase() === 'sedan',
+        );
+      } else if (currentCategory === 'suv') {
+        candidateVehicles = candidateVehicles.filter((v) => v.category.toLowerCase() === 'suv');
+      } else if (currentCategory === 'sedan') {
+        candidateVehicles = candidateVehicles.filter(
+          (v) => v.category.toLowerCase() === 'sedan' || v.category.toLowerCase() === 'luxury',
+        );
+      }
+
+      // If dates are in context, check authoritative availability for those dates!
+      const pickupDate = state.pickupDate || '2026-09-01';
+      const dropoffDate = state.dropoffDate || '2026-09-05';
+      const formattedP = state.formattedPickup || pickupDate;
+      const formattedD = state.formattedDropoff || dropoffDate;
+
+      const availableCandidates: SuggestedVehicle[] = [];
+      for (const cand of candidateVehicles) {
+        const check = await inventoryService.checkAvailability(
+          cand.id,
+          new Date(pickupDate),
+          new Date(dropoffDate),
+        );
+        if (check.isAvailable) {
+          availableCandidates.push({
+            id: cand.id,
+            name: `${cand.year} ${cand.make} ${cand.model}`,
+            year: cand.year,
+            make: cand.make,
+            model: cand.model,
+            category: cand.category,
+            dailyRate: cand.dailyRate,
+            seats: cand.seats,
+            transmission: cand.transmission,
+            fuelType: cand.fuelType,
+            luggage: cand.luggage,
+            imageUrl: cand.imageUrl || null,
+            location: cand.location,
+            bookingUrl: `/book/${cand.id}?pickupDate=${pickupDate}&dropoffDate=${dropoffDate}`,
+            detailsUrl: `/fleet/${cand.id}`,
+            matchReason: `Available alternative for ${formattedP} to ${formattedD}: ${cand.transmission} with ${cand.seats} seats at ₹${cand.dailyRate}/day.`,
+          });
+        }
+      }
+
+      const finalList =
+        availableCandidates.length > 0
+          ? availableCandidates
+          : candidateVehicles.slice(0, 2).map((cand) => ({
+              id: cand.id,
+              name: `${cand.year} ${cand.make} ${cand.model}`,
+              year: cand.year,
+              make: cand.make,
+              model: cand.model,
+              category: cand.category,
+              dailyRate: cand.dailyRate,
+              seats: cand.seats,
+              transmission: cand.transmission,
+              fuelType: cand.fuelType,
+              luggage: cand.luggage,
+              imageUrl: cand.imageUrl || null,
+              location: cand.location,
+              bookingUrl: `/book/${cand.id}?pickupDate=${pickupDate}&dropoffDate=${dropoffDate}`,
+              detailsUrl: `/fleet/${cand.id}`,
+              matchReason: `Closest alternative: ${cand.transmission} with ${cand.seats} seats at ₹${cand.dailyRate}/day.`,
+            }));
+
+      return {
+        message: `Here are similar available vehicles for your travel dates (${formattedP} to ${formattedD}):`,
+        suggestedVehicles: finalList,
+        quickActions: [
+          finalList[0] ? `Book ${finalList[0].make} ${finalList[0].model}` : 'Book Vehicle',
+          'Check Different Dates',
+          'Browse All Fleet',
+        ],
+        toolCallsExecuted,
+      };
+    }
+
+    // 5c. Multi-turn Follow-up handling: "check different dates" / "different dates" / "other dates"
+    if (
+      norm.includes('check different dates') ||
+      norm.includes('different dates') ||
+      norm.includes('other dates') ||
+      norm.includes('change dates') ||
+      norm === 'different dates' ||
+      norm === 'check other dates'
+    ) {
+      const vName = activeVehicle
+        ? `${activeVehicle.year} ${activeVehicle.make} ${activeVehicle.model}`
+        : 'your vehicle';
+      return {
+        message: `What new travel dates would you like to check for the ${vName}? (For example: "September 10 to 15" or "next weekend").`,
+        quickActions: ['September 10 to 15', 'Next Weekend', 'Browse All Fleet'],
+      };
     }
 
     // 6. Multi-turn Follow-up handling: "which is cheapest?" / "thoda sasta" / "aur sasti" / "cheapest car"
@@ -1520,7 +1717,8 @@ RENTAL POLICIES:
       (naturalDates && (activeVehicle || norm.includes('available')))
     ) {
       toolCallsExecuted.push('checkAvailability');
-      const target = activeVehicle || vehicles[0];
+      const vehicleMentioned = resolveVehicleWithTypoTolerance(userMessage, vehicles);
+      const target = vehicleMentioned || activeVehicle || vehicles[0];
 
       const pickupDate = naturalDates ? naturalDates.pickupDate : state.pickupDate || '2026-09-10';
       const dropoffDate = naturalDates

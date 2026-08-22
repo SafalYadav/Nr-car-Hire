@@ -3,7 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
+import { X, LogIn, UserCheck } from 'lucide-react';
 
 import { TransitionLink } from '@/components/shared/transition-link';
 
@@ -14,6 +15,7 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
+  const { user, profile, isAuthenticated } = useAuth();
   const shouldReduceMotion = useReducedMotion();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -103,8 +105,36 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
               </ul>
             </nav>
 
-            {/* CTA */}
-            <div className="p-4">
+            {/* CTA & Auth in Mobile Menu */}
+            <div className="p-4 space-y-2 border-t border-gray-100">
+              {isAuthenticated ? (
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="w-full text-xs font-semibold border-gold/40 bg-white text-midnight hover:bg-gold/10 shadow-xs"
+                  onClick={onClose}
+                  asChild
+                >
+                  <TransitionLink href="/account" className="flex items-center justify-center gap-2">
+                    <UserCheck className="h-4 w-4 text-gold" />
+                    <span>My Account ({profile?.firstName || user?.email?.split('@')[0]})</span>
+                  </TransitionLink>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="w-full text-xs font-semibold border-gold/40 bg-white text-midnight hover:bg-gold/10 shadow-xs"
+                  onClick={onClose}
+                  asChild
+                >
+                  <TransitionLink href="/login" className="flex items-center justify-center gap-2">
+                    <LogIn className="h-4 w-4 text-gold" />
+                    <span>Login / Sign Up</span>
+                  </TransitionLink>
+                </Button>
+              )}
+
               <Button variant="gold" size="lg" className="w-full" onClick={onClose} asChild>
                 <TransitionLink href="/#booking">Book Now</TransitionLink>
               </Button>

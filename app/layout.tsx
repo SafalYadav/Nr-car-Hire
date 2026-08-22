@@ -5,6 +5,7 @@ import { Footer } from '@/components/shared/footer';
 import { AiChatWidget } from '@/components/ai/ai-chat-widget';
 import { PageTransitionProvider } from '@/components/shared/page-transition';
 import { WebsiteVoiceGreeting } from '@/components/voice/website-voice-greeting';
+import { AuthProvider } from '@/lib/auth/auth-context';
 import './globals.css';
 
 const inter = Inter({
@@ -62,13 +63,15 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
       <body className="min-h-dvh font-sans">
-        <PageTransitionProvider>
-          <WebsiteVoiceGreeting />
-          <Header />
-          {children}
-          <Footer />
-          <AiChatWidget />
-        </PageTransitionProvider>
+        <AuthProvider>
+          <PageTransitionProvider>
+            <WebsiteVoiceGreeting />
+            <Header />
+            {children}
+            <Footer />
+            <AiChatWidget />
+          </PageTransitionProvider>
+        </AuthProvider>
       </body>
     </html>
   );

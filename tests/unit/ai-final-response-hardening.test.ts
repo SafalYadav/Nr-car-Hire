@@ -34,9 +34,9 @@ describe('Phase 5B Final Response + Availability Hardening', () => {
     ]);
     expect(res.availabilityCard?.isAvailable).toBe(false);
     expect(res.availabilityCard?.bookingUrl).toBeUndefined();
-    expect(res.message.toLowerCase()).toContain("isn't available");
-    expect(res.message.toLowerCase()).toContain('scheduled maintenance');
-    expect(res.message.toLowerCase()).toContain('show you similar vehicles');
+    expect(res.message.toLowerCase()).toContain('unavailable');
+    expect(res.message.toLowerCase()).toContain('scheduled for maintenance');
+    expect(res.message.toLowerCase()).toContain('similar available vehicles');
   });
 
   it('Test 3: Vehicle found + existing booking overlap -> NOT AVAILABLE + booking reason', async () => {
@@ -57,7 +57,7 @@ describe('Phase 5B Final Response + Availability Hardening', () => {
       { role: 'user', content: 'ye available hai?' },
     ]);
     expect(res.availabilityCard?.isAvailable).toBe(false);
-    expect(res.message.toLowerCase()).toContain("isn't available");
+    expect(res.message.toLowerCase()).toContain('unavailable');
     expect(res.message.toLowerCase()).toContain('already booked');
   });
 

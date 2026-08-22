@@ -24,7 +24,6 @@ import {
   MicOff,
   Volume2,
   VolumeX,
-  Globe,
   Radio,
 } from 'lucide-react';
 import type {
@@ -34,7 +33,7 @@ import type {
   BookingDraftCard,
 } from '@/lib/services/ai-agent-service';
 import { voiceService, getVoiceGreeting } from '@/lib/voice/voice-service';
-import type { VoiceState, SupportedVoiceLanguage } from '@/lib/voice/types';
+import type { VoiceState } from '@/lib/voice/types';
 
 interface MessageItem {
   id: string;
@@ -68,7 +67,6 @@ export function AiChatWidget() {
 
   // Voice Mode States
   const [voiceState, setVoiceState] = useState<VoiceState>('IDLE');
-  const [selectedLang, setSelectedLang] = useState<SupportedVoiceLanguage>('en-AU');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState('');
   const [voiceError, setVoiceError] = useState<string | null>(null);
@@ -83,10 +81,11 @@ export function AiChatWidget() {
   useEffect(() => {
     if (isOpen && !hasSpokenGreeting.current && messages.length <= 1) {
       hasSpokenGreeting.current = true;
-      const greeting = getVoiceGreeting(selectedLang);
-      voiceService.speakResponse(greeting, { autoListenAfter: false }).catch(() => {});
+      setIsVoiceMode(true);
+      const greeting = getVoiceGreeting();
+      voiceService.speakResponse(greeting, { autoListenAfter: true }).catch(() => {});
     }
-  }, [isOpen, selectedLang, messages.length]);
+  }, [isOpen, messages.length]);
 
   // Auto-scroll to bottom of conversation
   useEffect(() => {
@@ -146,10 +145,10 @@ export function AiChatWidget() {
           };
           setMessages((prev) => [...prev, assistantMessage]);
 
-          // If voice was used or voice mode is on, speak the response naturally
+          // If voice was used or voice mode is on, speak the response naturally and auto listen after
           if (isVoiceInitiated || isVoiceMode) {
             setCurrentlySpeakingId(msgId);
-            await voiceService.speakResponse(replyText);
+            await voiceService.speakResponse(replyText, { autoListenAfter: true });
             setCurrentlySpeakingId(null);
           }
         } else {
@@ -211,19 +210,8 @@ export function AiChatWidget() {
       setIsVoiceMode(false);
     } else {
       setIsVoiceMode(true);
-      voiceService.setLanguage(selectedLang);
+      voiceService.setLanguage('en-AU');
       await voiceService.startListening();
-    }
-  };
-
-  const handleLanguageChange = (lang: SupportedVoiceLanguage) => {
-    setSelectedLang(lang);
-    voiceService.setLanguage(lang);
-    if (voiceState === 'LISTENING') {
-      voiceService.stopListening();
-      setTimeout(() => {
-        voiceService.startListening();
-      }, 150);
     }
   };
 
@@ -316,27 +304,6 @@ export function AiChatWidget() {
             </div>
 
             <div className="flex items-center gap-1">
-              {/* Language Selector */}
-              <div className="flex items-center rounded-md border border-neutral-800 bg-neutral-950/80 p-0.5 text-[10px]">
-                <Globe className="ml-1 h-3 w-3 text-neutral-400" />
-                <select
-                  value={selectedLang}
-                  onChange={(e) => handleLanguageChange(e.target.value as SupportedVoiceLanguage)}
-                  className="bg-transparent px-1 py-0.5 text-[10px] text-neutral-300 focus:outline-none cursor-pointer"
-                  aria-label="Select Voice Language"
-                >
-                  <option value="en-AU" className="bg-neutral-900 text-white">
-                    EN
-                  </option>
-                  <option value="hi-IN" className="bg-neutral-900 text-white">
-                    HI (हिन्दी)
-                  </option>
-                  <option value="gu-IN" className="bg-neutral-900 text-white">
-                    GU (ગુજરાતી)
-                  </option>
-                </select>
-              </div>
-
               {/* Voice Mode Toggle Button */}
               <button
                 onClick={toggleVoiceMode}

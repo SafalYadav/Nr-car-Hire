@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/auth/auth-context';
+import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   Car,
@@ -18,6 +20,9 @@ import {
   ChevronRight,
   Menu,
   X,
+  ShieldAlert,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 
 const navigationItems = [
@@ -35,7 +40,46 @@ const navigationItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, profile, isAdmin, signOut, isLoading } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // If user is authenticated as customer without admin rights (and not using dev mode key)
+  const isCustomerWithoutAdmin = user && !isAdmin && profile?.role !== 'ADMIN';
+
+  if (!isLoading && isCustomerWithoutAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
+        <div className="max-w-md w-full rounded-3xl border border-slate-800 bg-slate-900 p-8 shadow-2xl text-center space-y-5">
+          <div className="h-16 w-16 bg-red-500/10 text-red-400 rounded-2xl flex items-center justify-center mx-auto border border-red-500/20">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-xl font-display font-bold text-white">
+              Administrator Access Required
+            </h1>
+            <p className="mt-2 text-xs text-slate-400">
+              The account <strong className="text-white">{user?.email}</strong> does not have
+              executive administrator privileges.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2">
+            <Button variant="gold" size="sm" asChild>
+              <Link href="/account">Go to Customer Dashboard</Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => signOut()}
+              className="border-slate-800 text-slate-300 hover:text-white"
+            >
+              <LogIn className="mr-1.5 h-3.5 w-3.5" /> Sign in with Admin Account
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col lg:flex-row antialiased">
@@ -106,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-4 border-t border-slate-800/80 space-y-2 text-xs">
           <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold border border-emerald-500/20">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Admin Mode (RBAC Active)</span>
+            <span>Supabase RBAC Active</span>
           </div>
 
           <Link
@@ -136,11 +180,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="font-mono text-[11px] bg-slate-800 text-gold px-2.5 py-1 rounded-md border border-slate-700">
               API Key: nr-car-hire-admin-secret-2024
             </span>
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-gold/20 text-gold font-bold flex items-center justify-center text-xs">
-                A
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-full bg-gold/20 text-gold font-bold flex items-center justify-center text-xs">
+                  {user?.email ? user.email.charAt(0).toUpperCase() : 'A'}
+                </div>
+                <span className="text-slate-300 font-medium">
+                  {user?.email || 'Administrator'}
+                </span>
               </div>
-              <span className="text-slate-300 font-medium">Administrator</span>
+              {user && (
+                <button
+                  onClick={() => signOut()}
+                  title="Sign Out"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </div>
         </header>

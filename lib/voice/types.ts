@@ -1,6 +1,6 @@
 export type VoiceState = 'IDLE' | 'LISTENING' | 'PROCESSING' | 'SPEAKING' | 'ERROR';
 
-export type SupportedVoiceLanguage = 'en-AU' | 'en-US' | 'hi-IN' | 'gu-IN' | 'auto';
+export type SupportedVoiceLanguage = 'en-AU' | 'en-US' | 'auto';
 
 export interface SpeechRecognitionOptions {
   lang?: SupportedVoiceLanguage;

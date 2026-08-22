@@ -1,21 +1,22 @@
 import type { TextToSpeechProvider, TextToSpeechOptions } from './types';
-import { formatTextForSpeech, browserSpeechSynthesisProvider } from './tts-provider';
+import { formatTextForSpeech } from './tts-provider';
 
+/**
+ * ElevenLabs Single Voice Pipeline Provider
+ * Single Source of Truth for all spoken voice audio across the application.
+ */
 export class ElevenLabsTTSProvider implements TextToSpeechProvider {
   private isSpeakingActive = false;
   private audioObject: HTMLAudioElement | null = null;
   private currentObjectUrl: string | null = null;
 
   public isSupported(): boolean {
-    return (
-      typeof window !== 'undefined' &&
-      (typeof Audio !== 'undefined' || browserSpeechSynthesisProvider.isSupported())
-    );
+    return typeof window !== 'undefined' && typeof Audio !== 'undefined';
   }
 
   public isSpeaking(): boolean {
     const isAudioPlaying = this.audioObject !== null && !this.audioObject.paused;
-    return this.isSpeakingActive || isAudioPlaying || browserSpeechSynthesisProvider.isSpeaking();
+    return this.isSpeakingActive || isAudioPlaying;
   }
 
   public async speak(text: string, options: TextToSpeechOptions = {}): Promise<void> {
@@ -31,7 +32,7 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
       return;
     }
 
-    // Stop any currently playing audio before starting new one
+    // Stop any currently playing audio before starting new playback
     this.stop();
 
     try {
@@ -45,11 +46,10 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
         body: JSON.stringify({ text: cleanText }),
       }).catch(() => null);
 
-      // If ElevenLabs endpoint failed (401, 500, network error, etc.), silently fall back to browser speech
       if (!response || !response.ok) {
-        this.isSpeakingActive = false;
-        if (browserSpeechSynthesisProvider.isSupported()) {
-          return browserSpeechSynthesisProvider.speak(cleanText, options);
+        this.cleanupAudio();
+        if (options.onError) {
+          options.onError('Voice synthesis service unavailable.');
         }
         if (options.onEnd) options.onEnd();
         return;
@@ -57,9 +57,9 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
 
       const blob = await response.blob();
       if (!blob || blob.size === 0) {
-        this.isSpeakingActive = false;
-        if (browserSpeechSynthesisProvider.isSupported()) {
-          return browserSpeechSynthesisProvider.speak(cleanText, options);
+        this.cleanupAudio();
+        if (options.onError) {
+          options.onError('Empty voice stream received.');
         }
         if (options.onEnd) options.onEnd();
         return;
@@ -75,7 +75,7 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
 
       return new Promise<void>((resolve) => {
         if (!this.audioObject) {
-          this.isSpeakingActive = false;
+          this.cleanupAudio();
           if (options.onEnd) options.onEnd();
           return resolve();
         }
@@ -88,33 +88,31 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
 
         this.audioObject.onerror = () => {
           this.cleanupAudio();
-          // If audio element failed to play the stream, fallback to browser synthesis
-          if (browserSpeechSynthesisProvider.isSupported()) {
-            browserSpeechSynthesisProvider.speak(cleanText, options).then(resolve).catch(resolve);
-            return;
+          if (options.onError) {
+            options.onError('Error during voice playback.');
           }
           if (options.onEnd) options.onEnd();
           resolve();
         };
 
-        this.audioObject.play().catch(() => {
-          // Play was interrupted or blocked by browser autoplay policy
-          this.cleanupAudio();
-          if (options.onEnd) options.onEnd();
-          resolve();
-        });
+        const playPromise = this.audioObject.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {
+            // Play was interrupted or blocked by browser autoplay policy
+            this.cleanupAudio();
+            if (options.onEnd) options.onEnd();
+            resolve();
+          });
+        } else {
+          // If playback starts synchronously or in mock environment, finish immediately on end
+        }
       });
     } catch {
       this.cleanupAudio();
-      if (browserSpeechSynthesisProvider.isSupported()) {
-        try {
-          return await browserSpeechSynthesisProvider.speak(cleanText, options);
-        } catch {
-          if (options.onEnd) options.onEnd();
-        }
-      } else {
-        if (options.onEnd) options.onEnd();
+      if (options.onError) {
+        options.onError('Voice synthesis encountered an error.');
       }
+      if (options.onEnd) options.onEnd();
     }
   }
 
@@ -138,7 +136,6 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
       this.cleanupAudio();
     }
     this.isSpeakingActive = false;
-    browserSpeechSynthesisProvider.stop();
   }
 
   public pause(): void {
@@ -148,7 +145,6 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
       } catch {}
       this.isSpeakingActive = false;
     }
-    browserSpeechSynthesisProvider.pause();
   }
 
   public resume(): void {
@@ -161,8 +157,6 @@ export class ElevenLabsTTSProvider implements TextToSpeechProvider {
         .catch(() => {
           // Silent catch on interrupted playback
         });
-    } else {
-      browserSpeechSynthesisProvider.resume();
     }
   }
 }

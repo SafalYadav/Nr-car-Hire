@@ -160,23 +160,31 @@ export class VoiceService {
       return;
     }
 
+    // Guarantee STT is stopped before speech starts
+    this.stt.stop();
     this.setState('SPEAKING');
 
     await this.tts.speak(text, {
       lang: this.currentLanguage,
       onStart: () => {
+        this.stt.stop();
         this.setState('SPEAKING');
       },
       onEnd: () => {
-        if (this.isVoiceModeActive && options.autoListenAfter) {
-          // Continuous conversational turn: return to listening
+        if (options.autoListenAfter !== false) {
+          this.isVoiceModeActive = true;
           this.startListening();
         } else {
           this.setState('IDLE');
         }
       },
       onError: () => {
-        this.setState('IDLE');
+        if (options.autoListenAfter) {
+          this.isVoiceModeActive = true;
+          this.startListening();
+        } else {
+          this.setState('IDLE');
+        }
       },
     });
   }
@@ -187,6 +195,7 @@ export class VoiceService {
   public setProcessing(isProcessing: boolean): void {
     this.isProcessing = isProcessing;
     if (isProcessing) {
+      this.stt.stop();
       this.setState('PROCESSING');
     }
   }
@@ -194,16 +203,6 @@ export class VoiceService {
 
 export const voiceService = new VoiceService();
 
-export function getVoiceGreeting(lang: SupportedVoiceLanguage): string {
-  switch (lang) {
-    case 'hi-IN':
-      return 'आप क्या लेना पसंद करेंगे?';
-    case 'gu-IN':
-      return 'તમે શું પસંદ કરશો?';
-    case 'en-AU':
-    case 'en-US':
-    case 'auto':
-    default:
-      return 'What would you like to have?';
-  }
+export function getVoiceGreeting(): string {
+  return 'What would you like to have?';
 }

@@ -146,27 +146,6 @@ export class BrowserSpeechRecognitionProvider implements SpeechRecognitionProvid
     }
 
     try {
-      // Proactively ensure mic permission is active on browser
-      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach((track) => track.stop());
-        } catch (mediaErr: unknown) {
-          const isNotAllowed =
-            mediaErr instanceof Error &&
-            (mediaErr.name === 'NotAllowedError' || mediaErr.name === 'PermissionDeniedError');
-          if (isNotAllowed) {
-            if (this.errorCallback) {
-              this.errorCallback(
-                'Microphone access is required for voice chat. You can continue using text chat.',
-                true,
-              );
-            }
-            return;
-          }
-        }
-      }
-
       const targetLang = this.mapLanguage(options.lang || 'en-AU');
       this.recognition.lang = targetLang;
       this.recognition.continuous = options.continuous ?? false;
@@ -225,10 +204,6 @@ export class BrowserSpeechRecognitionProvider implements SpeechRecognitionProvid
 
   private mapLanguage(lang: SupportedVoiceLanguage): string {
     switch (lang) {
-      case 'hi-IN':
-        return 'hi-IN';
-      case 'gu-IN':
-        return 'gu-IN';
       case 'en-US':
         return 'en-US';
       case 'en-AU':

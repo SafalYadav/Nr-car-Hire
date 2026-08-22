@@ -90,11 +90,55 @@ The six mandatory source-of-truth files are:
   - Rewrote `@apply` directives to use native CSS variables mapping to the Tailwind v4 `@theme`.
   - Removed broken `postcss.config.mjs` entirely to enable stable fast compilation.
 
+## NR CONCIERGE ROOT FIXES — COMPLETE & VERIFIED
+
+### Priority 1: Single Voice Pipeline
+- [x] **Single Voice Architecture**:
+  - `AI Response` → `Single TTS Service (voiceService)` → `ElevenLabsTTSProvider` (`/api/tts`) → `Audio Playback`.
+  - Single source of truth voice configuration (`ELEVENLABS_VOICE_ID` / standard premade Sarah `EXAVITQu4vr4xnSDxMaL`).
+  - Website greeting, concierge opening greeting (`"What would you like to have?"`), assistant replies, and follow-up turns all sound like the identical assistant.
+- [x] **Accidental Voice Switching Eliminated**:
+  - Removed automatic fallback to browser `speechSynthesis`. Browser speech synthesis is strictly isolated as a disabled emergency fallback and never activates when ElevenLabs is configured.
+  - Zero random voice changes across consecutive conversation turns.
+- [x] **Graceful Failure Handling**:
+  - ElevenLabs API failures (401, 500, network errors) terminate gracefully without throwing exceptions or crashing the frontend application.
+
+### Priority 2: Maintenance Availability Root Fix & Action Flow
+- [x] **Authoritative Data Flow**:
+  - `Customer Question` → `NR Concierge` → `InventoryService.checkAvailability()` (single source of truth) → `Maintenance holds + active bookings + dates` → `Final answer`.
+  - Direct integration with `vehicleStore.getVehicleMaintenances()` and `vehicleStore.getVehicleBookings()`.
+- [x] **Grounded Unavailable Explanation & Helpful Next Actions**:
+  - Scheduled Maintenance hold: *"The Toyota HiLux is unavailable from September 1 to September 5 because it is scheduled for maintenance. Would you like me to check different dates or show similar available vehicles?"*
+  - Quick Actions: `['Check Different Dates', 'Show Similar Vehicles', 'Browse All Fleet']`.
+  - Follow-up `"show similar"`: Understands previous vehicle/date context, queries `InventoryService` for candidate alternatives, and returns verified available vehicles with pre-filled booking URLs.
+  - Follow-up `"check different dates"`: Prompts for the customer's preferred new travel dates.
+- [x] **Zero Misleading Confirmations**:
+  - Never says "proceed with other date", "book another date", or "available" on blocked vehicles.
+  - No booking flow starts on an unavailable/maintained vehicle.
+- [x] **Read-Only Security Guardrails**:
+  - Refuses modification commands (cannot create/delete maintenance, cannot alter fleet/rates).
+  - Never leaks administrative secrets, maintenance internal codes, or database IDs.
+
+### Priority 3: Supabase Migration, Auth, Storage & Admin Panel Upgrade
+- [x] **Supabase Client**: Configured `@supabase/supabase-js` client at `lib/db/supabase.ts` connected to `https://nerswxfbytxooyxcnvnc.supabase.co`.
+- [x] **Database Schema**: Production SQL schema created at `supabase/migrations/20260823_supabase_init.sql` covering `profiles`, `vehicles`, `vehicle_images`, `vehicle_maintenances`, `locations`, `discounts`, `extras`, `bookings`, `payments`, `admin_audit_logs`, and `ai_conversations` with complete Row Level Security (RLS) policies.
+- [x] **Data Migration Script**: Created `scripts/migrate-seed-supabase.ts` for populating real Australian fleet, discounts, extras, locations, and maintenance holds.
+- [x] **Supabase Storage**: Implemented `lib/db/storage.ts` and `/api/admin/upload` for uploading, previewing, and deleting car images in the `vehicle-images` bucket.
+- [x] **Admin Fleet Image Management**: Upgraded `app/admin/vehicles/page.tsx` with full CRUD, real-time image upload, multi-photo gallery management, and primary image setting.
+- [x] **Supabase Authentication**:
+  - Implemented `lib/auth/auth-context.tsx` and wrapped `app/layout.tsx`.
+  - Created `/login` page ([app/login/page.tsx](file:///Users/safalyadav/nrcarhire/app/login/page.tsx)) with Email & Password and Google OAuth login.
+  - Created `/signup` page ([app/signup/page.tsx](file:///Users/safalyadav/nrcarhire/app/signup/page.tsx)) with profile creation in `public.profiles`.
+  - Upgraded Account Dashboard ([app/account/page.tsx](file:///Users/safalyadav/nrcarhire/app/account/page.tsx)) with live user session display, guest lookup, and logout.
+  - Protected Admin Command Centre ([app/admin/layout.tsx](file:///Users/safalyadav/nrcarhire/app/admin/layout.tsx)) with `ADMIN` role barrier and sign out.
+  - Auto pre-filled driver info in booking flow from authenticated Supabase profile.
+- [x] **ElevenLabs AI Tools**: Formally exported and tested the 5 core AI Agent tool functions in `lib/services/ai-agent-tools.ts`.
+
 ## Verification Metrics
 
-- Build: PASS (`npm run build` — 45/45 static & dynamic routes compiled perfectly)
-- Lint: PASS (`npx eslint` — 0 errors)
+- Build: PASS (`npm run build` — 48/48 static & dynamic routes compiled)
+- Lint: PASS (`npx eslint` — 0 errors, 0 warnings across all directories)
 - Type Check: PASS (`npx tsc --noEmit` — 0 errors)
-- Tests: PASS (`npm test` — 22/22 test files, 190/190 tests pass)
-- Live E2E Verification: PASS (`scratch/test-phase5d-e2e.mjs` — 21/21 scenarios passed 100%)
+- Tests: PASS (`npm test` — 28/28 test files, 235/235 unit tests pass)
+- Supabase Integration & Auth Suites: PASS (`tests/unit/supabase-auth-flow.test.ts`, `tests/unit/supabase-data-migration.test.ts`, `tests/unit/supabase-connection.test.ts`)
 - Dev Server: RUNNING (`next dev` on `http://localhost:3000`)

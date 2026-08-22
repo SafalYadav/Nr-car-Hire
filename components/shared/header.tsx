@@ -9,6 +9,9 @@ import { Menu } from 'lucide-react';
 
 import { TransitionLink } from '@/components/shared/transition-link';
 
+import { useAuth } from '@/lib/auth/auth-context';
+import { LogIn } from 'lucide-react';
+
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/fleet', label: 'Fleet' },
@@ -20,6 +23,7 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const { user, profile, isAuthenticated } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -85,8 +89,46 @@ export function Header() {
             ))}
           </ul>
 
-          {/* Desktop CTA */}
-          <div className="hidden lg:block">
+          {/* Desktop CTA & Auth */}
+          <div className="hidden lg:flex items-center gap-3">
+            {isAuthenticated ? (
+              <Button
+                variant={isScrolled ? 'outline' : 'outlineLight'}
+                size="default"
+                asChild
+                className={cn(
+                  'font-semibold text-xs transition-all duration-200',
+                  isScrolled
+                    ? 'border-gray-300 bg-gray-50/80 text-midnight hover:bg-gray-100 hover:text-midnight shadow-sm'
+                    : 'border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white shadow-sm',
+                )}
+              >
+                <TransitionLink href="/account" className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-gold text-midnight font-bold text-[10px] flex items-center justify-center shadow-xs">
+                    {(profile?.firstName || user?.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                  <span>My Account</span>
+                </TransitionLink>
+              </Button>
+            ) : (
+              <Button
+                variant={isScrolled ? 'outline' : 'outlineLight'}
+                size="default"
+                asChild
+                className={cn(
+                  'font-semibold text-xs transition-all duration-200',
+                  isScrolled
+                    ? 'border-gray-300 bg-gray-50/80 text-midnight hover:bg-gray-100 hover:text-midnight shadow-sm'
+                    : 'border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white shadow-sm',
+                )}
+              >
+                <TransitionLink href="/login" className="flex items-center gap-1.5">
+                  <LogIn className="h-4 w-4 text-gold" />
+                  <span>Login</span>
+                </TransitionLink>
+              </Button>
+            )}
+
             <Button variant="gold" size="default" asChild>
               <TransitionLink href="/#booking">Book Now</TransitionLink>
             </Button>

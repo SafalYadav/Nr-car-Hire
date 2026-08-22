@@ -8,12 +8,21 @@ export function formatTextForSpeech(text: string): string {
 
   return (
     text
+      // Markdown link conversion [label](url) -> label
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // Remove raw URLs and path routes
+      .replace(/https?:\/\/[^\s]+/g, '')
+      .replace(/\/book(?:\/[^\s]*)?/gi, '')
+      .replace(/\/fleet(?:\/[^\s]*)?/gi, '')
+      // Strip technical database / internal IDs
+      .replace(/\b(v-\d{3}-[a-z0-9]+)\b/gi, '')
+      .replace(/\b(bk-\d+-[a-z0-9]+)\b/gi, '')
       .replace(
         /([A-Za-z0-9\s]+)\s*[—–-]\s*₹\s*(\d+(?:\.\d+)?)\s*\/\s*(?:day|din)/gi,
         '$1 is $2 rupees per day',
       )
       // Date range natural phrasing: "1–5 September" / "1-5 September" -> "September 1st to 5th"
-      .replace(/(\d{1,2})\s*[—–-]\s*(\d{1,2})\s+([A-Za-z]+)/gi, (match, d1, d2, month) => {
+      .replace(/(\d{1,2})\s*[—–-]\s*(\d{1,2})\s+([A-Za-z]+)/gi, (_match, d1, d2, month) => {
         const getOrdinal = (n: number) => {
           const s = ['th', 'st', 'nd', 'rd'];
           const v = n % 100;
@@ -31,12 +40,6 @@ export function formatTextForSpeech(text: string): string {
       .replace(/ext-roadside-plus/gi, 'Roadside Assistance Plus')
       .replace(/ext-gps/gi, 'GPS Navigation')
       .replace(/ext-add-driver/gi, 'Additional Driver')
-      // Markdown link conversion [label](url) -> label
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      // Remove raw URLs and path routes
-      .replace(/https?:\/\/[^\s]+/g, '')
-      .replace(/\/book\/[^\s]+/g, '')
-      .replace(/\/fleet\/[^\s]+/g, '')
       // Remove emoji
       .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
       // Remove Markdown headers, bold, italics, code blocks
@@ -193,10 +196,6 @@ export class BrowserSpeechSynthesisProvider implements TextToSpeechProvider {
 
   private mapLanguage(lang: SupportedVoiceLanguage): string {
     switch (lang) {
-      case 'hi-IN':
-        return 'hi-IN';
-      case 'gu-IN':
-        return 'gu-IN';
       case 'en-US':
         return 'en-US';
       case 'en-AU':

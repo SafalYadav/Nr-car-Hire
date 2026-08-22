@@ -638,6 +638,10 @@ export function formatCustomerUnavailableReason(
   rawReason?: string,
 ): string {
   const normReason = (rawReason || '').toLowerCase();
+  const dateRangePhrase =
+    formattedPickup && formattedDropoff && formattedPickup !== formattedDropoff
+      ? `from ${formattedPickup} to ${formattedDropoff}`
+      : 'for those dates';
 
   if (
     normReason.includes('maintenance') ||
@@ -649,7 +653,7 @@ export function formatCustomerUnavailableReason(
     normReason.includes('gearbox') ||
     normReason.includes('engine')
   ) {
-    return `No, the ${vehicleName} is unavailable (isn't available) for those dates. The ${vehicleName} isn't available from ${formattedPickup} to ${formattedDropoff} because it has scheduled maintenance during those dates. Would you like me to show you similar vehicles that are available for those dates?`;
+    return `The ${vehicleName} is unavailable ${dateRangePhrase} because it is scheduled for maintenance. Would you like me to check different dates or show similar available vehicles?`;
   }
 
   if (
@@ -657,14 +661,14 @@ export function formatCustomerUnavailableReason(
     normReason.includes('reserv') ||
     normReason.includes('overlap')
   ) {
-    return `No, the ${vehicleName} is unavailable (isn't available) for those dates because it's already booked for part of that period. Would you like me to show you similar vehicles that are available for those dates?`;
+    return `The ${vehicleName} is unavailable ${dateRangePhrase} because it is already booked for part of that period. Would you like me to check different dates or show similar available vehicles?`;
   }
 
   if (normReason.includes('hold') || normReason.includes('admin')) {
-    return `No, the ${vehicleName} is unavailable (isn't available) for those dates due to an existing vehicle hold. Would you like me to show you similar vehicles that are available for those dates?`;
+    return `The ${vehicleName} is unavailable ${dateRangePhrase} due to an administrative reservation hold. Would you like me to check different dates or show similar available vehicles?`;
   }
 
-  return `No, the ${vehicleName} is unavailable (isn't available) for those dates (${formattedPickup} to ${formattedDropoff}). Would you like me to show you similar vehicles that are available for those dates?`;
+  return `The ${vehicleName} is unavailable ${dateRangePhrase}. Would you like me to check different dates or show similar available vehicles?`;
 }
 
 /**

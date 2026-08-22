@@ -59,6 +59,31 @@ export function getAuthSession(req: Request): AuthSession | null {
         role: 'CUSTOMER',
       };
     }
+
+    // Supabase JWT token parsing (3-part base64 encoded JWT)
+    if (token.split('.').length === 3) {
+      try {
+        const payloadBase64 = token.split('.')[1];
+        const payloadJson = Buffer.from(payloadBase64, 'base64').toString('utf-8');
+        const payload = JSON.parse(payloadJson);
+        if (payload.sub) {
+          const userRole: UserRole =
+            payload.role === 'service_role' ||
+            payload.user_metadata?.role === 'ADMIN' ||
+            payload.email?.includes('admin')
+              ? 'ADMIN'
+              : 'CUSTOMER';
+
+          return {
+            userId: payload.sub,
+            email: payload.email || 'user@nrcarhire.com.au',
+            role: userRole,
+          };
+        }
+      } catch {
+        // Fall through
+      }
+    }
   }
 
   return null;

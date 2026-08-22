@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TransitionLink } from '@/components/shared/transition-link';
+import { useAuth } from '@/lib/auth/auth-context';
 import type { Vehicle } from '@/lib/data/vehicles';
 import type { ExtraRecord } from '@/lib/db/extra-store';
 import type { LocationRecord } from '@/lib/db/location-store';
@@ -67,19 +68,21 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
   const [pickupTime, setPickupTime] = useState('10:00');
   const [returnTime, setReturnTime] = useState('10:00');
 
-  // Customer Details
-  const [customer, setCustomer] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
+  const { user, profile } = useAuth();
+
+  // Customer Details (pre-filled from authenticated Supabase profile if available)
+  const [customer, setCustomer] = useState(() => ({
+    firstName: profile?.firstName || user?.user_metadata?.first_name || '',
+    lastName: profile?.lastName || user?.user_metadata?.last_name || '',
+    email: user?.email || '',
+    phone: profile?.phone || user?.user_metadata?.phone || '',
     dateOfBirth: '',
     licenseNumber: '',
     address: '',
     city: 'Sydney',
     state: 'NSW',
     postalCode: '2000',
-  });
+  }));
 
   // Selected Extras
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({

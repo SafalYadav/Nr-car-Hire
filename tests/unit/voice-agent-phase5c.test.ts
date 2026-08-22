@@ -151,10 +151,8 @@ describe('Phase 5C Voice NR Concierge Agent', () => {
     const cleanDate = formatTextForSpeech(dateRangeText);
     expect(cleanDate).toContain('September 1st to 5th');
 
-    // Natural Greetings check
-    expect(getVoiceGreeting('en-AU')).toBe('What would you like to have?');
-    expect(getVoiceGreeting('hi-IN')).toContain('पसंद करेंगे');
-    expect(getVoiceGreeting('gu-IN')).toContain('પસંદ કરશો');
+    // Natural Greetings check (English Only)
+    expect(getVoiceGreeting()).toBe('What would you like to have?');
   });
 
   it('5. Microphone Permission Denial Handling', () => {
@@ -190,12 +188,9 @@ describe('Phase 5C Voice NR Concierge Agent', () => {
     expect(errorReceived).toContain('not supported');
   });
 
-  it('7. Multilingual Support: English, Hindi, Gujarati', () => {
-    voiceService.setLanguage('hi-IN');
-    expect(voiceService.getLanguage()).toBe('hi-IN');
-
-    voiceService.setLanguage('gu-IN');
-    expect(voiceService.getLanguage()).toBe('gu-IN');
+  it('7. English Language Configuration: en-AU and en-US', () => {
+    voiceService.setLanguage('en-US');
+    expect(voiceService.getLanguage()).toBe('en-US');
 
     voiceService.setLanguage('en-AU');
     expect(voiceService.getLanguage()).toBe('en-AU');
@@ -290,7 +285,8 @@ describe('Phase 5C Voice NR Concierge Agent', () => {
     ]);
     expect(res.availabilityCard?.isAvailable).toBe(false);
     expect(res.availabilityCard?.bookingUrl).toBeUndefined();
-    expect(res.message.toLowerCase()).toContain('scheduled maintenance');
+    expect(res.message.toLowerCase()).toContain('scheduled for maintenance');
+    expect(res.message.toLowerCase()).toContain('similar available vehicles');
 
     // Fresh availability check for 10-15 Sept is available
     const freshRes = await aiAgentService.processChat([
