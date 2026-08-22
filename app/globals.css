@@ -1,1 +1,86 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --color-midnight: #0B0D10;
+  --color-charcoal: #15181D;
+  --color-graphite: #1E2228;
+  --color-gold: #C9A45C;
+  
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-manrope);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  --color-border: var(--color-gray-200);
+  --color-input: var(--color-gray-200);
+  --color-ring: var(--color-gold);
+  --color-background: var(--color-white);
+  --color-foreground: var(--color-midnight);
+
+  --color-primary: var(--color-midnight);
+  --color-primary-foreground: var(--color-white);
+
+  --color-secondary: var(--color-gray-100);
+  --color-secondary-foreground: var(--color-midnight);
+
+  --color-destructive: var(--color-red-500);
+  --color-destructive-foreground: var(--color-white);
+
+  --color-muted: var(--color-gray-100);
+  --color-muted-foreground: var(--color-gray-500);
+
+  --color-accent: var(--color-gold);
+  --color-accent-foreground: var(--color-white);
+
+  --color-popover: var(--color-white);
+  --color-popover-foreground: var(--color-midnight);
+
+  --color-card: var(--color-white);
+  --color-card-foreground: var(--color-midnight);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-gold selection:text-white;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Animations */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
