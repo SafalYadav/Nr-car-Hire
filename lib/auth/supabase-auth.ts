@@ -11,6 +11,8 @@ export interface UserProfile {
   createdAt: string;
 }
 
+import { isEmailAdmin } from '@/lib/auth/rbac';
+
 /**
  * Sign up a new user with Supabase Auth
  */
@@ -20,6 +22,8 @@ export async function signUpWithEmail(
   metadata?: { firstName?: string; lastName?: string; phone?: string },
 ) {
   try {
+    const assignedRole = isEmailAdmin(email) ? 'ADMIN' : 'CUSTOMER';
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -28,7 +32,7 @@ export async function signUpWithEmail(
           first_name: metadata?.firstName || '',
           last_name: metadata?.lastName || '',
           phone: metadata?.phone || '',
-          role: 'CUSTOMER',
+          role: assignedRole,
         },
       },
     });
@@ -45,7 +49,7 @@ export async function signUpWithEmail(
         first_name: metadata?.firstName || '',
         last_name: metadata?.lastName || '',
         phone: metadata?.phone || '',
-        role: 'CUSTOMER',
+        role: assignedRole,
       });
     }
 
@@ -153,7 +157,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       firstName: data.first_name || '',
       lastName: data.last_name || '',
       phone: data.phone || '',
-      role: data.role || 'CUSTOMER',
+      role: isEmailAdmin(data.email) ? 'ADMIN' : data.role || 'CUSTOMER',
       createdAt: data.created_at,
     };
   } catch (err: unknown) {

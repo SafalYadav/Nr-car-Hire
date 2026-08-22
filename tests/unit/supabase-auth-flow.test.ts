@@ -116,5 +116,24 @@ describe('Supabase Authentication & Authorization Suite', () => {
       expect(session?.role).toBe('ADMIN');
       expect(() => requireAdmin(req)).not.toThrow();
     });
+
+    it('grants ADMIN role to websitebanja@gmail.com across all sessions', () => {
+      const mockPayload = Buffer.from(
+        JSON.stringify({
+          sub: 'usr-websitebanja-001',
+          email: 'websitebanja@gmail.com',
+        }),
+      ).toString('base64');
+      const fakeJwt = `header.${mockPayload}.signature`;
+
+      const req = new Request('http://localhost:3000/api/admin/vehicles', {
+        headers: { authorization: `Bearer ${fakeJwt}` },
+      });
+      const session = getAuthSession(req);
+      expect(session).not.toBeNull();
+      expect(session?.email).toBe('websitebanja@gmail.com');
+      expect(session?.role).toBe('ADMIN');
+      expect(() => requireAdmin(req)).not.toThrow();
+    });
   });
 });

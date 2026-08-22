@@ -8,6 +8,17 @@ export interface AuthSession {
   role: UserRole;
 }
 
+export const ADMIN_EMAILS = [
+  'admin@nrcarhire.com.au',
+  'websitebanja@gmail.com',
+];
+
+export function isEmailAdmin(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.toLowerCase().trim();
+  return ADMIN_EMAILS.includes(clean) || clean.includes('admin@nrcarhire.com.au');
+}
+
 /**
  * Extracts and verifies the authenticated user session from headers or cookies.
  * Supports standard Bearer tokens, session cookies, or development x-admin-key headers.
@@ -70,7 +81,7 @@ export function getAuthSession(req: Request): AuthSession | null {
           const userRole: UserRole =
             payload.role === 'service_role' ||
             payload.user_metadata?.role === 'ADMIN' ||
-            payload.email?.includes('admin')
+            isEmailAdmin(payload.email)
               ? 'ADMIN'
               : 'CUSTOMER';
 

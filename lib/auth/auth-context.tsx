@@ -11,6 +11,7 @@ import {
   signOutUser,
   type UserProfile,
 } from '@/lib/auth/supabase-auth';
+import { isEmailAdmin } from '@/lib/auth/rbac';
 
 interface AuthContextType {
   user: User | null;
@@ -34,8 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (currentUser: User | null) => {
-    if (!currentUser) {
+  const fetchProfile = async (currentUser: User) => {
+    if (!currentUser?.id) {
       setProfile(null);
       return;
     }
@@ -43,7 +44,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const p = await getUserProfile(currentUser.id);
       if (p) {
-        setProfile(p);
+        setProfile({
+          ...p,
+          role: isEmailAdmin(currentUser.email) ? 'ADMIN' : p.role,
+        });
       } else {
         // Fallback to user metadata
         setProfile({
@@ -53,8 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           lastName: currentUser.user_metadata?.last_name || '',
           phone: currentUser.user_metadata?.phone || '',
           role:
-            currentUser.user_metadata?.role === 'ADMIN' ||
-            currentUser.email?.includes('admin@nrcarhire.com.au')
+            currentUser.user_metadata?.role === 'ADMIN' || isEmailAdmin(currentUser.email)
               ? 'ADMIN'
               : 'CUSTOMER',
           createdAt: currentUser.created_at,
@@ -67,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: currentUser.email || '',
         firstName: '',
         lastName: '',
-        role: 'CUSTOMER',
+        role: isEmailAdmin(currentUser.email) ? 'ADMIN' : 'CUSTOMER',
         createdAt: currentUser.created_at,
       });
     }
@@ -132,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin =
     profile?.role === 'ADMIN' ||
     user?.user_metadata?.role === 'ADMIN' ||
-    user?.email?.includes('admin@nrcarhire.com.au') ||
+    isEmailAdmin(user?.email) ||
     false;
 
   return (
