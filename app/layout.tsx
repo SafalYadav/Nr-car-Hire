@@ -2,9 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import { Header } from '@/components/shared/header';
 import { Footer } from '@/components/shared/footer';
-import { AiChatWidget } from '@/components/ai/ai-chat-widget';
+import { ElevenLabsAgentWidget } from '@/components/ai/elevenlabs-agent-widget';
 import { PageTransitionProvider } from '@/components/shared/page-transition';
-import { WebsiteVoiceGreeting } from '@/components/voice/website-voice-greeting';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import './globals.css';
 
@@ -59,17 +58,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
       <body className="min-h-dvh font-sans">
         <AuthProvider>
           <PageTransitionProvider>
-            <WebsiteVoiceGreeting />
             <Header />
             {children}
             <Footer />
-            <AiChatWidget />
+            <ElevenLabsAgentWidget />
           </PageTransitionProvider>
         </AuthProvider>
       </body>

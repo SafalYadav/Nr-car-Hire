@@ -134,11 +134,29 @@ The six mandatory source-of-truth files are:
   - Auto pre-filled driver info in booking flow from authenticated Supabase profile.
 - [x] **ElevenLabs AI Tools**: Formally exported and tested the 5 core AI Agent tool functions in `lib/services/ai-agent-tools.ts`.
 
+### Priority 4: Official ElevenLabs Conversational AI Agent Integration
+- [x] **Codebase Audit & Clean-up**:
+  - Removed legacy custom chatbot widget (`components/ai/ai-chat-widget.tsx`).
+  - Removed legacy voice greeting sound trigger (`components/voice/website-voice-greeting.tsx`).
+  - Removed legacy voice provider directory (`lib/voice/`).
+  - Removed legacy server-side TTS proxy (`app/api/tts/route.ts`).
+  - Removed obsolete voice test suites (`tests/unit/concierge-final-voice-language-inventory.test.ts`, `tests/unit/concierge-root-verification.test.ts`, `tests/unit/elevenlabs-fallback.test.ts`, `tests/unit/voice-agent-phase5c.test.ts`).
+- [x] **Official ElevenLabs React SDK**:
+  - Installed `@elevenlabs/react` SDK with `useConversation` and `ConversationProvider`.
+  - Configured `NEXT_PUBLIC_ELEVENLABS_AGENT_ID="agent_7101m0nhr59dekj8fj3germ8pq3j"`.
+- [x] **Premium AI Voice Agent Widget**:
+  - Created `components/ai/elevenlabs-agent-widget.tsx` with luxury gold & midnight UI matching NR Car Hire brand.
+  - Floating bottom-right action trigger with live call status pulse.
+  - Interactive modal with real-time soundwave orb visualizer, mic mute toggle, end call controls, live transcript, and popular prompt suggestions.
+  - Mounted globally in `app/layout.tsx`. Zero duplicate UI widgets.
+- [x] **Testing & Verification**:
+  - Added unit test suite `tests/unit/elevenlabs-agent-integration.test.ts`.
+
 ## Verification Metrics
 
-- Build: PASS (`npm run build` — 48/48 static & dynamic routes compiled)
+- Build: PASS (`npm run build` — 47/47 static & dynamic routes compiled)
 - Lint: PASS (`npx eslint` — 0 errors, 0 warnings across all directories)
 - Type Check: PASS (`npx tsc --noEmit` — 0 errors)
-- Tests: PASS (`npm test` — 28/28 test files, 235/235 unit tests pass)
-- Supabase Integration & Auth Suites: PASS (`tests/unit/supabase-auth-flow.test.ts`, `tests/unit/supabase-data-migration.test.ts`, `tests/unit/supabase-connection.test.ts`)
+- Tests: PASS (`npm test` — 25/25 test files, 207/207 unit tests pass)
+- ElevenLabs Integration Suite: PASS (`tests/unit/elevenlabs-agent-integration.test.ts`)
 - Dev Server: RUNNING (`next dev` on `http://localhost:3000`)
