@@ -2,6 +2,30 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['192.168.1.68', 'localhost'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'nerswxfbytxooyxcnvnc.supabase.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.unsplash.com',
+        pathname: '/**',
+      },
+    ],
+  },
   async headers() {
     return [
       {
