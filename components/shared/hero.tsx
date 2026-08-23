@@ -39,7 +39,7 @@ export function Hero() {
             muted
             playsInline
             poster="/images/hero-poster.jpg"
-            className="h-full w-full object-cover object-center transform scale-105 transition-transform duration-1000 ease-out"
+            className="h-full w-full object-cover object-center"
           >
             <source src="/videos/hero-drive.webm" type="video/webm" />
             <source src="/videos/hero-drive.mp4" type="video/mp4" />
@@ -51,19 +51,18 @@ export function Hero() {
           />
         )}
 
-        {/* Multi-Layer Cinematic Dark Gradient Overlays for High Legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-midnight/95 via-midnight/80 to-midnight/65 lg:via-midnight/75" />
-        <div className="absolute inset-0 bg-gradient-to-t from-midnight via-transparent to-midnight/70" />
-        <div className="absolute inset-0 bg-midnight/30 backdrop-blur-[1px]" />
+        {/* Cinematic Light Gradient Overlays: Crystal clear video with high text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-r from-midnight/85 via-midnight/50 to-midnight/25 lg:from-midnight/80 lg:via-midnight/40 lg:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-midnight/70 via-transparent to-midnight/40" />
       </div>
 
-      {/* Subtle accent glow */}
+      {/* Subtle accent ambient light */}
       <div
-        className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gold/10 blur-3xl"
+        className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gold/5 blur-2xl"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-gold/5 blur-3xl"
+        className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-gold/5 blur-2xl"
         aria-hidden="true"
       />
 
