@@ -186,6 +186,13 @@ The six mandatory source-of-truth files are:
   - Modified: `lib/services/ai-agent-service.ts`, `components/ai/ai-assistant-widget.tsx`, `package.json`, `.env.local`, `tests/unit/ai-assistant-architecture.test.ts`.
   - Cleaned: Uninstalled `@google/genai`, purged `GEMINI_API_KEY`.
 
+### Priority 7: Premium Cinematic Hero Background Video
+- [x] **Cinematic Video Integration**:
+  - Replaced static background in `components/shared/hero.tsx` with high-definition seamless looping video (`/videos/hero-drive.webm` and `/videos/hero-drive.mp4`).
+  - Added photorealistic 4K golden-hour luxury SUV coastal driving poster (`/images/hero-poster.jpg`) as the video poster and reduced-motion fallback.
+  - Layered multi-directional midnight gradients (`from-midnight/95 via-midnight/80 to-midnight/65`) and subtle ambient gold glow to maintain 100% contrast, legibility, and accessibility for the hero text and booking widget.
+  - Full mobile and desktop responsiveness with `autoPlay`, `loop`, `muted`, and `playsInline`.
+
 ## Verification Metrics
 
 - Build: PASS (`npm run build` — 49/49 static & dynamic routes compiled)
