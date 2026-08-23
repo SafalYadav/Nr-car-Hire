@@ -39,7 +39,7 @@ export function Hero() {
             muted
             playsInline
             poster="/images/hero-poster.jpg"
-            className="h-full w-full object-cover object-center"
+            className="h-full w-full object-cover object-center transform scale-[1.35]"
           >
             <source src="/videos/hero-drive.webm" type="video/webm" />
             <source src="/videos/hero-drive.mp4" type="video/mp4" />
@@ -51,9 +51,8 @@ export function Hero() {
           />
         )}
 
-        {/* Cinematic Light Gradient Overlays: Crystal clear video with high text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-midnight/85 via-midnight/50 to-midnight/25 lg:from-midnight/80 lg:via-midnight/40 lg:to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-midnight/70 via-transparent to-midnight/40" />
+        {/* Seamless Edge-to-Edge Left Gradient (No Top or Bottom Black Bars) */}
+        <div className="absolute inset-0 bg-gradient-to-r from-midnight/85 via-midnight/35 to-transparent" />
       </div>
 
       {/* Subtle accent ambient light */}
