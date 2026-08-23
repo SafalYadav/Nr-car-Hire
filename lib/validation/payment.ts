@@ -11,6 +11,7 @@ export const CreateOrderSchema = z
     vehicleId: z.string().min(1, 'Vehicle ID is required'),
     pickupDate: z.coerce.date({ message: 'Valid pickup date required' }),
     dropoffDate: z.coerce.date({ message: 'Valid dropoff date required' }),
+    amount: z.number().positive().optional(),
     bookingId: z.string().optional(),
     currency: z.string().default('INR'),
     customer: z

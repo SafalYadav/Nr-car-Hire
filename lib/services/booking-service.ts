@@ -202,6 +202,7 @@ export class BookingService {
       vehicleId: validated.vehicleId,
       pickupDate: validated.pickupDate,
       dropoffDate: validated.dropoffDate,
+      amount: quote.finalAmount,
       currency: validated.currency || 'INR',
       customer: {
         name: `${validated.customer.firstName} ${validated.customer.lastName}`,

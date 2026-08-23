@@ -108,7 +108,10 @@ export class PaymentService {
     // 3. Authoritative Pricing Calculation
     const diffMs = validated.dropoffDate.getTime() - validated.pickupDate.getTime();
     const totalDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-    const amountMajor = totalDays * vehicle.dailyRate;
+    const amountMajor =
+      validated.amount !== undefined && validated.amount > 0
+        ? validated.amount
+        : totalDays * vehicle.dailyRate;
     const amountMinor = Math.round(amountMajor * 100); // minor currency units (paise)
     const currency = validated.currency || 'INR';
 
