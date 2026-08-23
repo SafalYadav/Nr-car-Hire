@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function FleetPage() {
   return (
-    <main className="min-h-screen bg-gray-50/50">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Fleet Hero Banner */}
       <section className="relative overflow-hidden bg-midnight pt-28 pb-16 lg:pt-36 lg:pb-20">
         {/* Background gradient & glows */}
@@ -25,11 +25,11 @@ export default function FleetPage() {
           aria-hidden="true"
         />
         <div
-          className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-gold/5 blur-3xl pointer-events-none"
+          className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-gold/10 blur-3xl pointer-events-none"
           aria-hidden="true"
         />
         <div
-          className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-gold/3 blur-3xl pointer-events-none"
+          className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-gold/5 blur-3xl pointer-events-none"
           aria-hidden="true"
         />
 
@@ -49,7 +49,7 @@ export default function FleetPage() {
           </nav>
 
           <div className="max-w-3xl">
-            <span className="inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-medium text-gold">
+            <span className="inline-block rounded-full border border-gold/30 bg-gold/15 px-4 py-1.5 text-xs font-semibold text-gold">
               Complete Fleet Catalogue
             </span>
             <h1 className="mt-4 text-4xl font-display font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -69,3 +69,4 @@ export default function FleetPage() {
     </main>
   );
 }
+

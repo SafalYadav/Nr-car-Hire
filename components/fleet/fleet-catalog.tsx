@@ -63,12 +63,12 @@ export function FleetCatalog() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       {/* Search & Filter Bar */}
-      <div className="rounded-[--radius-xl] border border-gray-100 bg-white p-6 shadow-xl shadow-black/5 lg:p-8">
+      <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Search Input */}
           <div className="relative flex-1">
             <Search
-              className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gold"
               aria-hidden="true"
             />
             <Input
@@ -76,7 +76,7 @@ export function FleetCatalog() {
               placeholder="Search by make, model or category (e.g. Camry, BMW, SUV)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11"
+              className="pl-10 h-12 rounded-xl border-input bg-background/80 text-foreground placeholder:text-muted-foreground focus-visible:ring-gold/30 focus-visible:border-gold shadow-xs"
               aria-label="Search vehicles"
             />
           </div>
@@ -86,7 +86,7 @@ export function FleetCatalog() {
             <div className="flex items-center gap-2">
               <label
                 htmlFor="transmission-filter"
-                className="text-xs font-medium text-muted-foreground"
+                className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
               >
                 Gearbox:
               </label>
@@ -96,7 +96,7 @@ export function FleetCatalog() {
                 onChange={(e) =>
                   setSelectedTransmission(e.target.value as 'All' | 'Automatic' | 'Manual')
                 }
-                className="h-11 rounded-[--radius-md] border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/20 focus-visible:border-gold"
+                className="h-12 rounded-xl border border-input bg-background/80 px-3.5 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30 focus-visible:border-gold shadow-xs"
               >
                 <option value="All">All Transmissions</option>
                 <option value="Automatic">Automatic</option>
@@ -105,7 +105,7 @@ export function FleetCatalog() {
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="sort-by" className="text-xs font-medium text-muted-foreground">
+              <label htmlFor="sort-by" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Sort:
               </label>
               <select
@@ -114,7 +114,7 @@ export function FleetCatalog() {
                 onChange={(e) =>
                   setSortBy(e.target.value as 'price-asc' | 'price-desc' | 'name-asc')
                 }
-                className="h-11 rounded-[--radius-md] border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/20 focus-visible:border-gold"
+                className="h-12 rounded-xl border border-input bg-background/80 px-3.5 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30 focus-visible:border-gold shadow-xs"
               >
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
@@ -125,9 +125,9 @@ export function FleetCatalog() {
         </div>
 
         {/* Category Pills */}
-        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-5">
-          <span className="mr-2 flex items-center gap-1 text-xs font-medium text-muted-foreground">
-            <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border pt-5">
+          <span className="mr-2 flex items-center gap-1 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
             Categories:
           </span>
           {vehicleCategories.map((category) => {
@@ -137,10 +137,10 @@ export function FleetCatalog() {
                 key={category}
                 type="button"
                 onClick={() => setSelectedCategory(category)}
-                className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200 ${
+                className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 ${
                   isActive
-                    ? 'bg-midnight text-white shadow-sm ring-2 ring-gold'
-                    : 'bg-gray-100 text-foreground/80 hover:bg-gray-200'
+                    ? 'bg-gold text-midnight shadow-md shadow-gold/20'
+                    : 'bg-muted text-foreground/80 hover:bg-muted/80 hover:text-foreground'
                 }`}
               >
                 {category}
@@ -152,7 +152,7 @@ export function FleetCatalog() {
             <button
               type="button"
               onClick={resetFilters}
-              className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-gold hover:text-gold/80 transition-colors"
+              className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-gold hover:text-gold/80 transition-colors"
             >
               <RotateCcw className="h-3 w-3" />
               Reset filters
@@ -179,20 +179,21 @@ export function FleetCatalog() {
           ))}
         </div>
       ) : (
-        <div className="mt-12 flex flex-col items-center justify-center rounded-[--radius-xl] border border-dashed border-gray-200 bg-white p-12 text-center">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-            <Car className="h-8 w-8" />
+        <div className="mt-12 flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card p-12 text-center shadow-xs">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Car className="h-8 w-8 text-gold" />
           </div>
-          <h3 className="text-lg font-display font-bold text-foreground">No vehicles found</h3>
+          <h3 className="text-lg font-display font-bold text-card-foreground">No vehicles found</h3>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
             We couldn&apos;t find any vehicles matching your current search and filter criteria.
           </p>
-          <Button variant="gold" size="default" onClick={resetFilters} className="mt-6">
+          <Button variant="gold" size="default" onClick={resetFilters} className="mt-6 rounded-full shadow-md shadow-gold/20">
             <RotateCcw className="h-4 w-4" />
-            Reset all filters
+            <span>Reset all filters</span>
           </Button>
         </div>
       )}
     </div>
   );
 }
+

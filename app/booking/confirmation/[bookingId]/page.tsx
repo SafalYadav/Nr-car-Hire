@@ -69,25 +69,25 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
   });
 
   return (
-    <main className="min-h-screen bg-gray-50/50 pt-28 pb-20">
+    <main className="min-h-screen bg-background text-foreground pt-28 pb-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Success Banner */}
-        <div className="rounded-3xl border border-emerald-100 bg-white p-8 shadow-sm text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+        <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-8 shadow-xl dark:shadow-black/40 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500 shadow-xs">
             <CheckCircle2 className="h-10 w-10" />
           </div>
 
-          <span className="mt-4 inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+          <span className="mt-5 inline-block rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
             Payment Verified & Booking Confirmed
           </span>
 
-          <h1 className="mt-2 text-3xl font-display font-extrabold text-foreground sm:text-4xl">
+          <h1 className="mt-3 text-3xl font-display font-extrabold text-card-foreground sm:text-4xl">
             You&apos;re Ready to Hit the Road!
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             A confirmation voucher has been recorded. Your reservation number is:
           </p>
-          <div className="mt-3 inline-block rounded-xl bg-gray-100 px-5 py-2 font-mono text-xl font-bold tracking-widest text-foreground">
+          <div className="mt-3 inline-block rounded-2xl bg-muted/60 border border-border px-6 py-2.5 font-mono text-xl font-bold tracking-widest text-foreground shadow-xs">
             {booking.bookingNumber}
           </div>
         </div>
@@ -97,13 +97,13 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
           {/* Left Column: Itinerary & Vehicle */}
           <div className="md:col-span-7 space-y-6">
             {/* Vehicle Card */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Reserved Vehicle
               </h2>
               <div className="mt-4 flex items-center gap-4">
                 {vehicle?.imageUrl && (
-                  <div className="relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-gray-50 border">
+                  <div className="relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-2xl bg-muted/40 border border-border">
                     <Image
                       src={vehicle.imageUrl}
                       alt={vehicle.model}
@@ -113,15 +113,15 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
                   </div>
                 )}
                 <div>
-                  <span className="inline-block rounded-full bg-gold/10 px-2.5 py-0.5 text-[10px] font-semibold text-gold">
+                  <span className="inline-block rounded-full bg-gold/15 border border-gold/30 px-2.5 py-0.5 text-[10px] font-bold text-gold">
                     {vehicle?.category || 'Premium'}
                   </span>
-                  <h3 className="text-lg font-display font-bold text-foreground">
+                  <h3 className="text-lg font-display font-bold text-card-foreground mt-1">
                     {vehicle
                       ? `${vehicle.year} ${vehicle.make} ${vehicle.model}`
                       : booking.vehicleId}
                   </h3>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground font-medium">
                     ₹{booking.dailyRate}/day • {booking.rentalDays} Days Rental
                   </p>
                 </div>
@@ -129,8 +129,8 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
             </div>
 
             {/* Itinerary Schedule */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40 space-y-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Rental Schedule & Locations
               </h2>
 
@@ -138,23 +138,23 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase">Pickup</p>
-                    <p className="text-sm font-medium text-foreground">{booking.pickupLocation}</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase">Pickup</p>
+                    <p className="text-sm font-semibold text-foreground">{booking.pickupLocation}</p>
                     <p className="text-xs text-muted-foreground">
                       {formattedPickupDate} at {booking.pickupTime}
                     </p>
                   </div>
                 </div>
 
-                <div className="border-l-2 border-dashed border-gray-200 ml-2.5 h-6" />
+                <div className="border-l-2 border-dashed border-border ml-2.5 h-6" />
 
                 <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <MapPin className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase">
+                    <p className="text-xs font-bold text-muted-foreground uppercase">
                       Drop-off / Return
                     </p>
-                    <p className="text-sm font-medium text-foreground">{booking.dropoffLocation}</p>
+                    <p className="text-sm font-semibold text-foreground">{booking.dropoffLocation}</p>
                     <p className="text-xs text-muted-foreground">
                       {formattedDropoffDate} at {booking.returnTime}
                     </p>
@@ -164,28 +164,28 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
             </div>
 
             {/* Primary Driver */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Primary Driver Information
               </h2>
               <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <span className="text-muted-foreground">Full Name:</span>
-                  <p className="font-medium text-foreground">
+                  <p className="font-semibold text-foreground">
                     {booking.customerDetails.firstName} {booking.customerDetails.lastName}
                   </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Contact Email:</span>
-                  <p className="font-medium text-foreground">{booking.customerDetails.email}</p>
+                  <p className="font-semibold text-foreground">{booking.customerDetails.email}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Phone Number:</span>
-                  <p className="font-medium text-foreground">{booking.customerDetails.phone}</p>
+                  <p className="font-semibold text-foreground">{booking.customerDetails.phone}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Driver Licence:</span>
-                  <p className="font-mono font-medium text-foreground">
+                  <p className="font-mono font-bold text-foreground">
                     {booking.customerDetails.licenseNumber}
                   </p>
                 </div>
@@ -196,31 +196,31 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
           {/* Right Column: Financial Summary & Next Steps */}
           <div className="md:col-span-5 space-y-6">
             {/* Price Ledger Card */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Payment Receipt
                 </h2>
-                <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5">
+                <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold px-2.5 py-0.5">
                   PAID
                 </span>
               </div>
 
-              <div className="space-y-2 text-xs border-b border-gray-100 pb-3">
+              <div className="space-y-2 text-xs border-b border-border pb-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Base Rental:</span>
-                  <span className="font-medium text-foreground">₹{booking.baseAmount}</span>
+                  <span className="font-semibold text-foreground">₹{booking.baseAmount}</span>
                 </div>
 
                 {booking.extrasAmount > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Optional Extras:</span>
-                    <span className="font-medium text-foreground">₹{booking.extrasAmount}</span>
+                    <span className="font-semibold text-foreground">₹{booking.extrasAmount}</span>
                   </div>
                 )}
 
                 {booking.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-600 font-medium">
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
                     <span>Discount Promo ({booking.promoCode}):</span>
                     <span>-₹{booking.discountAmount}</span>
                   </div>
@@ -234,7 +234,7 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
                 </span>
               </div>
 
-              <div className="space-y-1.5 pt-2 text-[10px] font-mono text-muted-foreground border-t border-gray-100">
+              <div className="space-y-1.5 pt-2 text-[10px] font-mono text-muted-foreground border-t border-border">
                 <div className="flex justify-between">
                   <span>Booking Record ID:</span>
                   <span className="font-semibold text-foreground">{booking.id}</span>
@@ -255,21 +255,21 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
             </div>
 
             {/* What to Bring on Pickup Day */}
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 What to bring to the depot
               </h3>
-              <ul className="space-y-2 text-xs text-muted-foreground">
+              <ul className="space-y-2 text-xs text-muted-foreground font-medium">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                   <span>Physical valid Driver Licence</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                   <span>Credit Card for pre-authorisation</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                   <span>Reservation Number: {booking.bookingNumber}</span>
                 </li>
               </ul>
@@ -277,14 +277,14 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
 
             {/* Actions */}
             <div className="space-y-2.5">
-              <Button variant="gold" className="w-full justify-center" asChild>
+              <Button variant="gold" className="w-full justify-center rounded-full font-bold shadow-md shadow-gold/20" asChild>
                 <Link href="/account">
-                  Manage in Customer Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                  <span>Manage in Customer Dashboard</span> <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-center" asChild>
+              <Button variant="outline" className="w-full justify-center rounded-full font-semibold" asChild>
                 <Link href="/">
-                  <Home className="mr-2 h-4 w-4" /> Return to Homepage
+                  <Home className="mr-2 h-4 w-4" /> <span>Return to Homepage</span>
                 </Link>
               </Button>
             </div>
@@ -294,3 +294,4 @@ export default async function BookingConfirmationPage({ params }: ConfirmationPa
     </main>
   );
 }
+

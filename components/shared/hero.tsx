@@ -4,7 +4,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { BookingWidget } from '@/components/shared/booking-widget';
 import { TransitionLink } from '@/components/shared/transition-link';
-import { ChevronRight } from 'lucide-react';
+import { CinematicHeroVideo } from '@/components/shared/cinematic-hero-video';
+import { ChevronRight, Sparkles } from 'lucide-react';
 
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -30,47 +31,27 @@ export function Hero() {
       className="relative min-h-[100dvh] overflow-hidden bg-midnight"
       aria-label="Hero"
     >
-      {/* Cinematic Background Video with Poster Fallback */}
-      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-        {!shouldReduceMotion ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster="/images/hero-poster.jpg"
-            className="h-full w-full object-cover object-center transform scale-[1.35]"
-          >
-            <source src="/videos/hero-drive.webm" type="video/webm" />
-            <source src="/videos/hero-drive.mp4" type="video/mp4" />
-          </video>
-        ) : (
+      {/* Cinematic Background Video with Smooth Crossfade & Australian Highway Scenes */}
+      {!shouldReduceMotion ? (
+        <CinematicHeroVideo />
+      ) : (
+        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
           <div
             className="h-full w-full bg-cover bg-center"
             style={{ backgroundImage: 'url(/images/hero-poster.jpg)' }}
           />
-        )}
+          <div className="absolute inset-0 bg-gradient-to-r from-midnight/90 via-midnight/55 to-midnight/25" />
+        </div>
+      )}
 
-        {/* Seamless Edge-to-Edge Left Gradient (No Top or Bottom Black Bars) */}
-        <div className="absolute inset-0 bg-gradient-to-r from-midnight/85 via-midnight/35 to-transparent" />
-      </div>
-
-      {/* Subtle accent ambient light */}
-      <div
-        className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gold/5 blur-2xl"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-gold/5 blur-2xl"
-        aria-hidden="true"
-      />
-
-      <div className="relative mx-auto flex min-h-[100dvh] max-w-7xl flex-col items-center justify-center gap-12 px-4 py-24 sm:px-6 lg:flex-row lg:gap-16 lg:px-8 lg:py-0">
+      <div className="relative mx-auto flex min-h-[100dvh] max-w-7xl flex-col items-center justify-center gap-12 px-4 py-28 sm:px-6 lg:flex-row lg:gap-16 lg:px-8 lg:py-0">
         {/* Left: Copy */}
+
         <div className="flex-1 text-center lg:text-left">
           <motion.div variants={variants} initial="hidden" animate="visible" custom={0.1}>
-            <span className="inline-block rounded-[--radius-full] border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-medium text-gold">
-              Premium Car Hire — Australia
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-black/40 px-4 py-1.5 text-xs font-semibold text-gold shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Australia&apos;s Luxury Car Rental Experience</span>
             </span>
           </motion.div>
 
@@ -79,11 +60,13 @@ export function Hero() {
             initial="hidden"
             animate="visible"
             custom={0.2}
-            className="mt-6 text-4xl font-display font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl"
+            className="mt-6 text-4xl font-display font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl drop-shadow-[0_3px_14px_rgba(0,0,0,0.85)]"
           >
             Drive Premium.
             <br />
-            <span className="text-gold">Drive Confidence.</span>
+            <span className="bg-gradient-to-r from-amber-200 via-gold to-amber-400 bg-clip-text text-transparent">
+              Drive Confidence.
+            </span>
           </motion.h1>
 
           <motion.p
@@ -91,10 +74,9 @@ export function Hero() {
             initial="hidden"
             animate="visible"
             custom={0.3}
-            className="mt-6 max-w-lg text-base leading-relaxed text-gray-400 sm:text-lg lg:max-w-xl"
+            className="mt-6 max-w-lg text-base leading-relaxed text-white sm:text-lg lg:max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] font-medium"
           >
-            Quality vehicles, transparent pricing, and reliable service across Australia. From city
-            sedans to luxury SUVs — find the perfect vehicle for your journey.
+            Immaculate late-model vehicles, transparent daily rates, zero hidden fees, and seamless airport pickup across Australia.
           </motion.p>
 
           <motion.div
@@ -104,25 +86,26 @@ export function Hero() {
             custom={0.4}
             className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:items-start"
           >
-            <Button variant="gold" size="lg" asChild>
+            <Button variant="gold" size="lg" className="rounded-full shadow-lg shadow-gold/25 px-8 text-sm font-bold" asChild>
               <TransitionLink href="/fleet">
-                Explore Fleet
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                <span>Explore Full Fleet</span>
+                <ChevronRight className="h-4 w-4 ml-1" aria-hidden="true" />
               </TransitionLink>
             </Button>
-            <Button variant="outlineLight" size="lg" asChild>
-              <a href="#why-nr">Why NR Car Hire</a>
+            <Button variant="outlineLight" size="lg" className="rounded-full border-white/40 bg-black/30 hover:bg-white/20 text-sm font-semibold text-white" asChild>
+              <a href="#why-nr">Why Choose NR</a>
             </Button>
           </motion.div>
         </div>
+
 
         {/* Right: Booking Widget */}
         <motion.div
           variants={variants}
           initial="hidden"
           animate="visible"
-          custom={0.5}
-          className="w-full max-w-md flex-shrink-0 lg:max-w-sm xl:max-w-md"
+          custom={0.3}
+          className="w-full max-w-md lg:max-w-lg"
         >
           <BookingWidget />
         </motion.div>

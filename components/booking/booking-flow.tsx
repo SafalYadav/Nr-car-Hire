@@ -498,9 +498,9 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
       {/* Stepper Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-gold">
+            <span className="text-xs font-bold uppercase tracking-wider text-gold">
               Step {step} of 5
             </span>
             <h1 className="text-2xl font-display font-bold text-foreground sm:text-3xl">
@@ -512,7 +512,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
             </h1>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             <span className={step >= 1 ? 'text-gold font-bold' : ''}>1. Vehicle</span>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className={step >= 2 ? 'text-gold font-bold' : ''}>2. Dates</span>
@@ -531,13 +531,13 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
         <div className="lg:col-span-8 space-y-6">
           {/* STEP 1: Vehicle Selection */}
           {step === 1 && (
-            <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="space-y-6 rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40">
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="inline-block rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
+                  <span className="inline-block rounded-full bg-gold/15 px-3 py-1 text-xs font-semibold text-gold border border-gold/30">
                     {selectedVehicle.category}
                   </span>
-                  <h2 className="mt-2 text-2xl font-display font-bold text-foreground">
+                  <h2 className="mt-2 text-2xl font-display font-bold text-card-foreground">
                     {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}
                   </h2>
                   <p className="text-sm text-muted-foreground">
@@ -545,7 +545,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Daily Rate</p>
+                  <p className="text-xs text-muted-foreground font-medium">Daily Rate</p>
                   <p className="text-2xl font-display font-extrabold text-foreground">
                     ₹{selectedVehicle.dailyRate}
                     <span className="text-xs font-normal text-muted-foreground">/day</span>
@@ -554,7 +554,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
               </div>
 
               {/* Vehicle Image */}
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted/40 border border-border">
                 {selectedVehicle.imageUrl && (
                   <Image
                     src={selectedVehicle.imageUrl}
@@ -568,31 +568,31 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
               {/* Specs Grid */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
-                <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3 text-xs text-foreground">
+                <div className="flex items-center gap-2 rounded-xl bg-muted/60 dark:bg-charcoal/60 border border-border/60 p-3 text-xs text-foreground font-medium">
                   <Users className="h-4 w-4 text-gold" />
                   <span>5 Passenger Seats</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3 text-xs text-foreground">
+                <div className="flex items-center gap-2 rounded-xl bg-muted/60 dark:bg-charcoal/60 border border-border/60 p-3 text-xs text-foreground font-medium">
                   <Cog className="h-4 w-4 text-gold" />
                   <span>Automatic Gearbox</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3 text-xs text-foreground">
+                <div className="flex items-center gap-2 rounded-xl bg-muted/60 dark:bg-charcoal/60 border border-border/60 p-3 text-xs text-foreground font-medium">
                   <Fuel className="h-4 w-4 text-gold" />
                   <span>Premium Fuel</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3 text-xs text-foreground">
+                <div className="flex items-center gap-2 rounded-xl bg-muted/60 dark:bg-charcoal/60 border border-border/60 p-3 text-xs text-foreground font-medium">
                   <Briefcase className="h-4 w-4 text-gold" />
                   <span>3 Large Luggage</span>
                 </div>
               </div>
 
               {availabilityFeedback?.isError && (
-                <div className="rounded-xl bg-red-50 p-4 border border-red-200 space-y-3">
-                  <div className="flex items-start gap-2.5 text-xs text-red-800">
-                    <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5 text-red-600" />
+                <div className="rounded-2xl bg-red-500/10 p-4 border border-red-500/30 space-y-3">
+                  <div className="flex items-start gap-2.5 text-xs text-red-600 dark:text-red-300">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5 text-red-500" />
                     <div>
-                      <p className="font-semibold text-red-900">{availabilityFeedback.title}</p>
-                      <p className="mt-0.5">{availabilityFeedback.message}</p>
+                      <p className="font-bold text-red-700 dark:text-red-200">{availabilityFeedback.title}</p>
+                      <p className="mt-0.5 leading-relaxed">{availabilityFeedback.message}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-1">
@@ -600,11 +600,11 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => setStep(2)}
-                      className="text-xs h-8 bg-white"
+                      className="text-xs h-8"
                     >
                       Choose Different Dates
                     </Button>
-                    <Button variant="outline" size="sm" asChild className="text-xs h-8 bg-white">
+                    <Button variant="outline" size="sm" asChild className="text-xs h-8">
                       <TransitionLink href="/fleet">Browse Other Vehicles</TransitionLink>
                     </Button>
                   </div>
@@ -612,8 +612,8 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
               )}
 
               <div className="pt-4 flex justify-end">
-                <Button variant="gold" onClick={() => setStep(2)}>
-                  Continue to Dates & Locations <ChevronRight className="ml-2 h-4 w-4" />
+                <Button variant="gold" onClick={() => setStep(2)} className="rounded-full font-bold shadow-md shadow-gold/20">
+                  <span>Continue to Dates & Locations</span> <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -621,27 +621,26 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
           {/* STEP 2: Dates & Locations */}
           {step === 2 && (
-            <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="space-y-6 rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-display font-bold text-foreground">
+                  <h2 className="text-lg font-display font-bold text-card-foreground">
                     Rental Itinerary & Australian Hubs
                   </h2>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Select your hire dates. Availability is verified automatically against our live
-                    fleet scheduler.
+                    Select your hire dates. Availability is verified automatically against our live fleet scheduler.
                   </p>
                 </div>
               </div>
 
               {/* Blocked / Reserved Dates Warning Card */}
               {blockedRanges.length > 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-950 space-y-1.5">
-                  <div className="flex items-center gap-1.5 font-semibold text-amber-900">
-                    <Clock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-200 space-y-1.5">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
+                    <Clock className="h-4 w-4 text-amber-500 flex-shrink-0" />
                     <span>Unavailable Dates for this Vehicle:</span>
                   </div>
-                  <ul className="list-disc list-inside space-y-1 text-[11px] text-amber-800">
+                  <ul className="list-disc list-inside space-y-1 text-[11px]">
                     {blockedRanges.map((r, i) => (
                       <li key={i}>
                         <span className="font-semibold">
@@ -657,12 +656,12 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="pickupLocation">Pickup Location</Label>
+                  <Label htmlFor="pickupLocation" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pickup Location</Label>
                   <select
                     id="pickupLocation"
                     value={pickupLocation}
                     onChange={(e) => setPickupLocation(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="mt-1.5 block w-full rounded-xl border border-input bg-background/80 px-3.5 py-2.5 text-xs font-medium shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30 focus-visible:border-gold"
                   >
                     {locations.map((loc) => (
                       <option key={loc.id} value={loc.name}>
@@ -673,12 +672,12 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor="dropoffLocation">Return / Drop-off Location</Label>
+                  <Label htmlFor="dropoffLocation" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Return / Drop-off Location</Label>
                   <select
                     id="dropoffLocation"
                     value={dropoffLocation}
                     onChange={(e) => setDropoffLocation(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="mt-1.5 block w-full rounded-xl border border-input bg-background/80 px-3.5 py-2.5 text-xs font-medium shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30 focus-visible:border-gold"
                   >
                     {locations.map((loc) => (
                       <option key={loc.id} value={loc.name}>
@@ -689,51 +688,55 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor="pickupDate">Pickup Date</Label>
+                  <Label htmlFor="pickupDate" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pickup Date</Label>
                   <Input
                     id="pickupDate"
                     type="date"
                     min={new Date().toISOString().split('T')[0]}
                     value={pickupDate}
                     onChange={(e) => setPickupDate(e.target.value)}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="dropoffDate">Return Date</Label>
+                  <Label htmlFor="dropoffDate" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Return Date</Label>
                   <Input
                     id="dropoffDate"
                     type="date"
                     min={pickupDate || new Date().toISOString().split('T')[0]}
                     value={dropoffDate}
                     onChange={(e) => setDropoffDate(e.target.value)}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="pickupTime">Pickup Time</Label>
+                  <Label htmlFor="pickupTime" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pickup Time</Label>
                   <Input
                     id="pickupTime"
                     type="time"
                     value={pickupTime}
                     onChange={(e) => setPickupTime(e.target.value)}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="returnTime">Return Time</Label>
+                  <Label htmlFor="returnTime" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Return Time</Label>
                   <Input
                     id="returnTime"
                     type="time"
                     value={returnTime}
                     onChange={(e) => setReturnTime(e.target.value)}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
               </div>
 
               {/* Real-time Server Availability Feedback */}
               {isCalculatingQuote && (
-                <div className="flex items-center gap-2 rounded-xl bg-gray-50 p-3.5 text-xs text-muted-foreground border border-gray-100">
+                <div className="flex items-center gap-2 rounded-2xl bg-muted/50 p-3.5 text-xs text-muted-foreground border border-border">
                   <Loader2 className="h-4 w-4 animate-spin text-gold" />
                   <span>Checking vehicle availability from server...</span>
                 </div>
@@ -741,17 +744,17 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
               {!isCalculatingQuote && availabilityFeedback && (
                 <div
-                  className={`rounded-xl p-4 border space-y-3 ${
+                  className={`rounded-2xl p-4 border space-y-3 ${
                     availabilityFeedback.isError
-                      ? 'bg-red-50/80 border-red-200 text-red-900'
-                      : 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                      ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-300'
+                      : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300'
                   }`}
                 >
                   <div className="flex items-start gap-2.5 text-xs">
                     {availabilityFeedback.isError ? (
-                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5 text-red-600" />
+                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5 text-red-500" />
                     ) : (
-                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5 text-emerald-600" />
+                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5 text-emerald-500" />
                     )}
                     <div>
                       <p className="font-bold text-sm">{availabilityFeedback.title}</p>
@@ -771,11 +774,11 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                           setDropoffDate('');
                           setAvailabilityFeedback(null);
                         }}
-                        className="text-xs h-8 bg-white"
+                        className="text-xs h-8"
                       >
                         Choose Different Dates
                       </Button>
-                      <Button variant="outline" size="sm" asChild className="text-xs h-8 bg-white">
+                      <Button variant="outline" size="sm" asChild className="text-xs h-8">
                         <TransitionLink href="/fleet">Browse Other Vehicles</TransitionLink>
                       </Button>
                     </div>
@@ -784,7 +787,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
               )}
 
               <div className="pt-4 flex justify-between">
-                <Button variant="outline" onClick={() => setStep(1)}>
+                <Button variant="outline" onClick={() => setStep(1)} className="rounded-full">
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <Button
@@ -797,8 +800,9 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                     !dropoffDate
                   }
                   onClick={handleProceedToStep3}
+                  className="rounded-full font-bold shadow-md shadow-gold/20"
                 >
-                  Continue to Driver Details <ChevronRight className="ml-2 h-4 w-4" />
+                  <span>Continue to Driver Details</span> <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -806,40 +810,41 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
           {/* STEP 3: Customer Details */}
           {step === 3 && (
-            <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-display font-bold text-foreground">
+            <div className="space-y-6 rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40">
+              <h2 className="text-lg font-display font-bold text-card-foreground">
                 Driver & Primary Customer Details
               </h2>
               <p className="text-xs text-muted-foreground">
-                All Australian vehicle hire requires valid driver licence details matching the
-                primary driver.
+                All Australian vehicle hire requires valid driver licence details matching the primary driver.
               </p>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <Label htmlFor="firstName" className="text-xs font-semibold text-muted-foreground">First Name *</Label>
                   <Input
                     id="firstName"
                     required
                     placeholder="e.g. John"
                     value={customer.firstName}
                     onChange={(e) => setCustomer({ ...customer, firstName: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="lastName" className="text-xs font-semibold text-muted-foreground">Last Name *</Label>
                   <Input
                     id="lastName"
                     required
                     placeholder="e.g. Smith"
                     value={customer.lastName}
                     onChange={(e) => setCustomer({ ...customer, lastName: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email Address *</Label>
+                  <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground">Email Address *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -847,11 +852,12 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                     placeholder="john.smith@example.com"
                     value={customer.email}
                     onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Label htmlFor="phone" className="text-xs font-semibold text-muted-foreground">Phone Number *</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -859,43 +865,47 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                     placeholder="+61 412 345 678"
                     value={customer.phone}
                     onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="licenseNumber">Driver Licence Number *</Label>
+                  <Label htmlFor="licenseNumber" className="text-xs font-semibold text-muted-foreground">Driver Licence Number *</Label>
                   <Input
                     id="licenseNumber"
                     required
                     placeholder="e.g. NSW-8492019"
                     value={customer.licenseNumber}
                     onChange={(e) => setCustomer({ ...customer, licenseNumber: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Label htmlFor="dateOfBirth" className="text-xs font-semibold text-muted-foreground">Date of Birth</Label>
                   <Input
                     id="dateOfBirth"
                     type="date"
                     value={customer.dateOfBirth}
                     onChange={(e) => setCustomer({ ...customer, dateOfBirth: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <Label htmlFor="address">Residential Address</Label>
+                  <Label htmlFor="address" className="text-xs font-semibold text-muted-foreground">Residential Address</Label>
                   <Input
                     id="address"
                     placeholder="123 George St"
                     value={customer.address}
                     onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl bg-background/80"
                   />
                 </div>
               </div>
 
               <div className="pt-4 flex justify-between">
-                <Button variant="outline" onClick={() => setStep(2)}>
+                <Button variant="outline" onClick={() => setStep(2)} className="rounded-full">
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <Button
@@ -907,8 +917,9 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                     !customer.licenseNumber
                   }
                   onClick={handleProceedToStep4}
+                  className="rounded-full font-bold shadow-md shadow-gold/20"
                 >
-                  Continue to Optional Extras <ChevronRight className="ml-2 h-4 w-4" />
+                  <span>Continue to Optional Extras</span> <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -916,14 +927,13 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
           {/* STEP 4: Optional Extras */}
           {step === 4 && (
-            <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="space-y-6 rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40">
               <div>
-                <h2 className="text-lg font-display font-bold text-foreground">
+                <h2 className="text-lg font-display font-bold text-card-foreground">
                   Customise Optional Extras & Protection
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Add optional coverage, drivers, child safety seats, or navigation equipment to
-                  your hire.
+                  Add optional coverage, drivers, child safety seats, or navigation equipment to your hire.
                 </p>
               </div>
 
@@ -935,27 +945,27 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                   return (
                     <div
                       key={extra.id}
-                      className={`flex items-center justify-between rounded-xl border p-4 transition-all duration-200 ${
+                      className={`flex items-center justify-between rounded-2xl border p-4 transition-all duration-200 ${
                         isSelected
-                          ? 'border-gold/50 bg-gold/5'
-                          : 'border-gray-100 bg-white hover:border-gray-200'
+                          ? 'border-gold/60 bg-gold/10'
+                          : 'border-border/80 bg-background/60 hover:border-gold/30'
                       }`}
                     >
                       <div className="flex-1 pr-4">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-foreground">{extra.name}</h3>
+                          <h3 className="text-sm font-bold text-card-foreground">{extra.name}</h3>
                           {extra.pricingType === 'PER_DAY' ? (
-                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
                               Per Day
                             </span>
                           ) : (
-                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
                               Flat Fee
                             </span>
                           )}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">{extra.description}</p>
-                        <p className="mt-1.5 text-xs font-semibold text-foreground">
+                        <p className="mt-1.5 text-xs font-bold text-foreground">
                           ₹{extra.price} {extra.pricingType === 'PER_DAY' ? '/ day' : 'total'}
                         </p>
                       </div>
@@ -968,18 +978,18 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-8 w-8 p-0"
+                              className="h-8 w-8 p-0 rounded-lg"
                               disabled={currentQty === 0}
                               onClick={() => handleToggleExtra(extra.id, -1, extra.maxQuantity)}
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
-                            <span className="w-5 text-center text-xs font-bold">{currentQty}</span>
+                            <span className="w-5 text-center text-xs font-bold text-foreground">{currentQty}</span>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-8 w-8 p-0"
+                              className="h-8 w-8 p-0 rounded-lg"
                               disabled={currentQty >= extra.maxQuantity}
                               onClick={() => handleToggleExtra(extra.id, 1, extra.maxQuantity)}
                             >
@@ -992,7 +1002,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                             variant={isSelected ? 'gold' : 'outline'}
                             size="sm"
                             onClick={() => handleToggleExtra(extra.id, isSelected ? -1 : 1, 1)}
-                            className="text-xs"
+                            className="text-xs rounded-full font-bold"
                           >
                             {isSelected ? 'Selected' : 'Add'}
                           </Button>
@@ -1004,11 +1014,11 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
               </div>
 
               <div className="pt-4 flex justify-between">
-                <Button variant="outline" onClick={() => setStep(3)}>
+                <Button variant="outline" onClick={() => setStep(3)} className="rounded-full">
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
-                <Button variant="gold" onClick={handleProceedToStep5}>
-                  Review & Proceed to Payment <ChevronRight className="ml-2 h-4 w-4" />
+                <Button variant="gold" onClick={handleProceedToStep5} className="rounded-full font-bold shadow-md shadow-gold/20">
+                  <span>Review & Proceed to Payment</span> <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -1016,16 +1026,16 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
           {/* STEP 5: Final Review & Razorpay Payment */}
           {step === 5 && (
-            <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-display font-bold text-foreground">
+            <div className="space-y-6 rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40">
+              <h2 className="text-lg font-display font-bold text-card-foreground">
                 Review Itinerary & Complete Payment
               </h2>
 
               {/* Promo Code Input */}
-              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+              <div className="rounded-2xl bg-muted/40 p-4 border border-border">
                 <Label
                   htmlFor="promoCode"
-                  className="text-xs font-semibold text-muted-foreground uppercase"
+                  className="text-xs font-bold text-muted-foreground uppercase tracking-wider"
                 >
                   Have a Promo Code?
                 </Label>
@@ -1035,13 +1045,14 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                     placeholder="e.g. SAVE10, WEEKEND50, SUMMER15"
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
-                    className="bg-white uppercase font-mono text-sm"
+                    className="bg-background uppercase font-mono text-sm rounded-xl h-11"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     disabled={isValidatingPromo || !promoCodeInput.trim()}
                     onClick={handleApplyPromo}
+                    className="rounded-xl h-11 font-bold"
                   >
                     {isValidatingPromo ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
                   </Button>
@@ -1050,7 +1061,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                 {promoFeedback && (
                   <p
                     className={`mt-2 text-xs flex items-center gap-1.5 ${
-                      promoFeedback.success ? 'text-emerald-600 font-medium' : 'text-red-600'
+                      promoFeedback.success ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-red-500'
                     }`}
                   >
                     {promoFeedback.success ? (
@@ -1064,14 +1075,14 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
               </div>
 
               {/* Customer & Itinerary Summary Card */}
-              <div className="rounded-xl border border-gray-100 p-4 space-y-2 text-xs text-muted-foreground">
-                <div className="flex justify-between border-b pb-2">
+              <div className="rounded-2xl border border-border p-4 space-y-2 text-xs text-muted-foreground bg-muted/20">
+                <div className="flex justify-between border-b border-border pb-2">
                   <span className="font-semibold text-foreground">Driver:</span>
                   <span>
                     {customer.firstName} {customer.lastName} ({customer.phone})
                   </span>
                 </div>
-                <div className="flex justify-between border-b pb-2">
+                <div className="flex justify-between border-b border-border pb-2">
                   <span className="font-semibold text-foreground">Pickup:</span>
                   <span>
                     {pickupLocation} ({pickupDate} at {pickupTime})
@@ -1086,7 +1097,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
               </div>
 
               {paymentError && (
-                <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200">
+                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-300 border border-red-500/30">
                   <AlertCircle className="h-4 w-4 flex-shrink-0" />
                   <span>{paymentError}</span>
                 </div>
@@ -1100,7 +1111,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                   size="lg"
                   disabled={isProcessingPayment || !quote}
                   onClick={handleCompleteBooking}
-                  className="w-full justify-center text-sm font-semibold shadow-lg shadow-gold/20"
+                  className="w-full justify-center text-sm font-bold shadow-lg shadow-gold/20 rounded-full h-12"
                 >
                   {isProcessingPayment ? (
                     <>
@@ -1116,14 +1127,13 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                 </Button>
 
                 <p className="mt-3 text-center text-[11px] text-muted-foreground flex items-center justify-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-emerald-600" />
-                  256-Bit SSL Encrypted • Cryptographic HMAC Server Verification • Instant
-                  Confirmation
+                  <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  256-Bit SSL Encrypted • Cryptographic HMAC Server Verification • Instant Confirmation
                 </p>
               </div>
 
               <div className="pt-2 flex justify-start">
-                <Button variant="outline" size="sm" onClick={() => setStep(4)}>
+                <Button variant="outline" size="sm" onClick={() => setStep(4)} className="rounded-full">
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back to Extras
                 </Button>
               </div>
@@ -1133,12 +1143,12 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
         {/* Right Column: Authoritative Pricing Summary Card */}
         <div className="lg:col-span-4">
-          <div className="sticky top-28 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-5">
-            <h3 className="text-base font-display font-bold text-foreground">Booking Summary</h3>
+          <div className="sticky top-28 rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40 space-y-5">
+            <h3 className="text-base font-display font-bold text-card-foreground">Booking Summary</h3>
 
             {/* Vehicle snapshot */}
-            <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-              <div className="relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-gray-50 border">
+            <div className="flex items-center gap-3 border-b border-border pb-4">
+              <div className="relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-muted/40 border border-border">
                 {selectedVehicle.imageUrl && (
                   <Image
                     src={selectedVehicle.imageUrl}
@@ -1149,11 +1159,11 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                 )}
               </div>
               <div>
-                <p className="text-xs font-semibold text-foreground">
+                <p className="text-xs font-bold text-card-foreground">
                   {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}
                 </p>
                 <p className="text-[11px] text-muted-foreground">{selectedVehicle.category}</p>
-                <p className="text-xs font-bold text-gold">₹{selectedVehicle.dailyRate}/day</p>
+                <p className="text-xs font-extrabold text-gold">₹{selectedVehicle.dailyRate}/day</p>
               </div>
             </div>
 
@@ -1173,12 +1183,12 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                 </div>
 
                 {quote.selectedExtras.length > 0 && (
-                  <div className="space-y-1 pt-1 border-t border-gray-50">
+                  <div className="space-y-1 pt-1 border-t border-border">
                     <p className="text-[11px] font-semibold text-muted-foreground">
                       Selected Extras:
                     </p>
                     {quote.selectedExtras.map((ext) => (
-                      <div key={ext.extraId} className="flex justify-between text-gray-500 pl-2">
+                      <div key={ext.extraId} className="flex justify-between text-muted-foreground pl-2">
                         <span>
                           {ext.name} {ext.quantity > 1 ? `(×${ext.quantity})` : ''}:
                         </span>
@@ -1193,7 +1203,7 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                 )}
 
                 {quote.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-600 font-semibold border-t border-gray-50 pt-1.5">
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold border-t border-border pt-1.5">
                     <span className="flex items-center gap-1">
                       <Tag className="h-3 w-3" />
                       Promo ({quote.promoApplied?.code}):
@@ -1202,10 +1212,10 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                   </div>
                 )}
 
-                <div className="border-t border-gray-200 pt-3 flex items-baseline justify-between">
+                <div className="border-t border-border pt-3 flex items-baseline justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Total Payable Amount</p>
-                    <p className="text-[10px] text-gray-400">
+                    <p className="text-xs text-muted-foreground font-medium">Total Payable Amount</p>
+                    <p className="text-[10px] text-muted-foreground/80">
                       Includes all GST & standard insurance
                     </p>
                   </div>

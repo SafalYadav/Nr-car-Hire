@@ -71,10 +71,10 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
   };
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-5 mt-6">
+    <div className="rounded-2xl border border-border/80 dark:border-white/10 bg-muted/40 p-5 mt-6">
       <div className="flex items-center gap-2 mb-3">
         <Clock className="h-4 w-4 text-gold" />
-        <h3 className="text-sm font-display font-bold text-foreground">
+        <h3 className="text-sm font-display font-bold text-card-foreground">
           Check Date-Range Availability
         </h3>
       </div>
@@ -84,12 +84,12 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
           <div>
             <label
               htmlFor="detail-pickup-date"
-              className="block text-xs font-medium text-muted-foreground mb-1"
+              className="block text-xs font-semibold text-muted-foreground mb-1"
             >
               Pickup Date
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Calendar className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gold pointer-events-none" />
               <input
                 type="date"
                 id="detail-pickup-date"
@@ -100,7 +100,7 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
                   setResult(null);
                 }}
                 required
-                className="w-full h-10 rounded-[--radius-md] border border-input bg-white py-1.5 pl-9 pr-3 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/20 focus-visible:border-gold"
+                className="w-full h-10 rounded-xl border border-input bg-background/90 py-1.5 pl-9 pr-3 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30 focus-visible:border-gold shadow-xs"
               />
             </div>
           </div>
@@ -108,12 +108,12 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
           <div>
             <label
               htmlFor="detail-dropoff-date"
-              className="block text-xs font-medium text-muted-foreground mb-1"
+              className="block text-xs font-semibold text-muted-foreground mb-1"
             >
               Return Date
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Calendar className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gold pointer-events-none" />
               <input
                 type="date"
                 id="detail-dropoff-date"
@@ -124,7 +124,7 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
                   setResult(null);
                 }}
                 required
-                className="w-full h-10 rounded-[--radius-md] border border-input bg-white py-1.5 pl-9 pr-3 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/20 focus-visible:border-gold"
+                className="w-full h-10 rounded-xl border border-input bg-background/90 py-1.5 pl-9 pr-3 text-xs font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30 focus-visible:border-gold shadow-xs"
               />
             </div>
           </div>
@@ -135,7 +135,7 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
           variant="outline"
           size="sm"
           disabled={isLoading || !pickupDate || !dropoffDate}
-          className="w-full justify-center text-xs"
+          className="w-full justify-center text-xs rounded-xl font-bold"
         >
           {isLoading ? 'Verifying Availability...' : 'Verify Dates'}
         </Button>
@@ -144,28 +144,28 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
       {/* Result feedback */}
       {result && (
         <div
-          className={`mt-4 rounded-lg p-3 text-xs border ${
+          className={`mt-4 rounded-xl p-3.5 text-xs border ${
             result.isAvailable
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-              : 'border-red-200 bg-red-50 text-red-900'
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
+              : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-300'
           }`}
         >
           <div className="flex items-start gap-2">
             {result.isAvailable ? (
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
             )}
             <div className="flex-1 space-y-2">
               <div>
-                <p className="font-semibold">
+                <p className="font-bold text-sm">
                   {result.isAvailable ? 'Vehicle is Available!' : 'Vehicle Unavailable'}
                 </p>
                 {result.reason && <p className="mt-0.5 text-xs opacity-90">{result.reason}</p>}
                 {result.isAvailable && result.totalDays && result.estimatedTotal && (
-                  <div className="mt-2 pt-2 border-t border-emerald-200 flex justify-between font-medium">
+                  <div className="mt-2 pt-2 border-t border-border flex justify-between font-bold text-foreground">
                     <span>{result.totalDays} Days Rental:</span>
-                    <span>₹{result.estimatedTotal} INR</span>
+                    <span className="text-gold">₹{result.estimatedTotal} INR</span>
                   </div>
                 )}
               </div>
@@ -175,7 +175,7 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
                   variant="gold"
                   size="sm"
                   asChild
-                  className="w-full justify-center text-xs mt-2"
+                  className="w-full justify-center text-xs mt-2 rounded-full font-bold shadow-md shadow-gold/20"
                 >
                   <TransitionLink
                     href={`/book/${vehicleId}?pickupDate=${encodeURIComponent(
@@ -183,7 +183,7 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
                     )}&dropoffDate=${encodeURIComponent(dropoffDate)}`}
                   >
                     <CalendarCheck className="h-3.5 w-3.5 mr-1" />
-                    Book for These Verified Dates
+                    <span>Book for These Verified Dates</span>
                   </TransitionLink>
                 </Button>
               ) : (
@@ -196,7 +196,7 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
                       setDropoffDate('');
                       setResult(null);
                     }}
-                    className="flex-1 text-[11px] h-8 justify-center"
+                    className="flex-1 text-[11px] h-8 justify-center rounded-lg"
                   >
                     Choose Different Dates
                   </Button>
@@ -204,7 +204,7 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
                     variant="outline"
                     size="sm"
                     asChild
-                    className="flex-1 text-[11px] h-8 justify-center"
+                    className="flex-1 text-[11px] h-8 justify-center rounded-lg"
                   >
                     <TransitionLink href="/fleet">Browse Other Vehicles</TransitionLink>
                   </Button>
@@ -217,3 +217,4 @@ export function VehicleAvailabilityChecker({ vehicleId }: VehicleAvailabilityChe
     </div>
   );
 }
+

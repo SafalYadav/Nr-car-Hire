@@ -1,45 +1,49 @@
 import { ScrollReveal } from '@/components/shared/scroll-reveal';
 import { Button } from '@/components/ui/button';
 import { TransitionLink } from '@/components/shared/transition-link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 export function CTASection() {
   return (
     <section
-      className="relative overflow-hidden bg-midnight py-20 sm:py-24 lg:py-32"
+      className="relative overflow-hidden bg-midnight py-20 sm:py-28"
       aria-labelledby="cta-heading"
     >
-      {/* Background accent */}
+      {/* Background ambient lighting */}
       <div
-        className="absolute -right-40 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-gold/5 blur-3xl"
+        className="pointer-events-none absolute -right-40 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-gold/15 blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="absolute -left-40 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-gold/3 blur-3xl"
+        className="pointer-events-none absolute -left-40 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-gold/10 blur-3xl"
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8 z-10">
         <ScrollReveal>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-semibold text-gold mb-6 shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Instant Confirmation</span>
+          </span>
+
           <h2
             id="cta-heading"
-            className="text-3xl font-display font-bold tracking-tight text-white sm:text-4xl lg:text-5xl"
+            className="text-3xl font-display font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl"
           >
-            Ready to Hit the Road?
+            Ready to Experience Australian Roads in Luxury?
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-gray-400 sm:text-lg">
-            Browse our premium fleet, pick your dates, and book your vehicle in minutes. Premium car
-            hire, made simple.
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-gray-300 sm:text-lg">
+            Browse our pristine vehicle fleet, select your pickup dates, and secure your vehicle in under 2 minutes. Transparent rates with zero hidden fees.
           </p>
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Button variant="gold" size="lg" asChild>
+          <div className="mt-8 flex flex-col items-center gap-3.5 sm:flex-row sm:justify-center">
+            <Button variant="gold" size="lg" className="rounded-full shadow-lg shadow-gold/25 px-8 text-sm font-bold" asChild>
               <TransitionLink href="/#booking">
-                Search Vehicles
+                <span>Find Your Car</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </TransitionLink>
             </Button>
-            <Button variant="outlineLight" size="lg" asChild>
-              <TransitionLink href="/fleet">Browse Fleet</TransitionLink>
+            <Button variant="outlineLight" size="lg" className="rounded-full border-white/30 text-white hover:bg-white/10 text-sm font-semibold" asChild>
+              <TransitionLink href="/fleet">Browse All Fleet</TransitionLink>
             </Button>
           </div>
         </ScrollReveal>
@@ -47,3 +51,4 @@ export function CTASection() {
     </section>
   );
 }
+

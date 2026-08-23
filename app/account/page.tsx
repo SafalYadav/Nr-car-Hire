@@ -116,7 +116,7 @@ export default function CustomerAccountPage() {
 
   if (isAuthLoading) {
     return (
-      <main className="min-h-screen bg-gray-50/50 pt-28 pb-20 flex items-center justify-center">
+      <main className="min-h-screen bg-background text-foreground pt-28 pb-20 flex items-center justify-center">
         <div className="text-center space-y-3">
           <Loader2 className="h-8 w-8 animate-spin text-gold mx-auto" />
           <p className="text-xs text-muted-foreground">Verifying Supabase secure session...</p>
@@ -139,53 +139,53 @@ export default function CustomerAccountPage() {
     activeTab === 'upcoming' ? upcomingBookings : activeTab === 'past' ? pastBookings : bookings;
 
   return (
-    <main className="min-h-screen bg-gray-50/50 pt-28 pb-20">
+    <main className="min-h-screen bg-background text-foreground pt-28 pb-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* If user is NOT authenticated, show a login prompt banner with guest lookup option */}
         {!isAuthenticated ? (
           <div className="space-y-6">
-            <div className="rounded-3xl border border-gray-100 bg-white p-8 md:p-12 shadow-sm text-center max-w-2xl mx-auto space-y-5">
-              <div className="h-16 w-16 bg-gold/10 text-gold rounded-2xl flex items-center justify-center mx-auto">
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-8 md:p-12 shadow-xl dark:shadow-black/40 text-center max-w-2xl mx-auto space-y-5">
+              <div className="h-16 w-16 bg-gold/10 text-gold rounded-2xl flex items-center justify-center mx-auto shadow-xs">
                 <ShieldCheck className="h-8 w-8" />
               </div>
               <div>
-                <h1 className="text-2xl font-display font-bold text-foreground sm:text-3xl">
+                <h1 className="text-2xl font-display font-bold text-card-foreground sm:text-3xl">
                   Sign in to Access Your Hire Account
                 </h1>
-                <p className="mt-2 text-xs text-muted-foreground max-w-md mx-auto">
+                <p className="mt-2 text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
                   View upcoming vehicle reservations, download rental vouchers, modify driver
                   itineraries, or book new vehicles with 1-click checkout.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <Button variant="gold" size="default" className="w-full sm:w-auto" asChild>
+                <Button variant="gold" size="default" className="w-full sm:w-auto rounded-full font-bold shadow-md shadow-gold/20" asChild>
                   <Link href="/login?redirect=/account">
-                    <LogIn className="mr-2 h-4 w-4" /> Sign In with Email or Google
+                    <LogIn className="mr-2 h-4 w-4" /> <span>Sign In with Email or Google</span>
                   </Link>
                 </Button>
-                <Button variant="outline" size="default" className="w-full sm:w-auto" asChild>
+                <Button variant="outline" size="default" className="w-full sm:w-auto rounded-full font-semibold" asChild>
                   <Link href="/signup?redirect=/account">Create Account</Link>
                 </Button>
               </div>
 
               {/* Guest lookup tool */}
-              <div className="pt-6 border-t border-gray-100 text-left">
-                <Label htmlFor="guestEmail" className="text-xs font-semibold text-foreground">
+              <div className="pt-6 border-t border-border text-left">
+                <Label htmlFor="guestEmail" className="text-xs font-bold text-foreground">
                   Have a guest reservation? Look up by email:
                 </Label>
-                <div className="mt-1.5 flex gap-2">
+                <div className="mt-2 flex gap-2">
                   <Input
                     id="guestEmail"
                     value={guestEmail}
                     onChange={(e) => setGuestEmail(e.target.value)}
                     placeholder="Enter booking email address"
-                    className="text-xs h-9 bg-gray-50"
+                    className="text-xs h-10 rounded-xl bg-background/80"
                   />
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-9 text-xs whitespace-nowrap"
+                    className="h-10 text-xs whitespace-nowrap rounded-xl font-bold"
                     disabled={!guestEmail || isLoadingBookings}
                     onClick={() => loadBookingsForEmail(guestEmail)}
                   >
@@ -201,19 +201,19 @@ export default function CustomerAccountPage() {
           </div>
         ) : (
           /* Authenticated Customer Header */
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between rounded-3xl border border-gray-100 bg-white p-6 md:p-8 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 md:p-8 shadow-xl dark:shadow-black/40">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gold/10 text-gold font-bold text-xl flex-shrink-0">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gold/10 text-gold font-bold text-xl flex-shrink-0 shadow-xs">
                 {(profile?.firstName || user?.email || 'U').charAt(0).toUpperCase()}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-gold flex items-center gap-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold flex items-center gap-1">
                     <UserCheck className="h-3.5 w-3.5" />
                     {profile?.role === 'ADMIN' ? 'Administrator' : 'Verified Customer Account'}
                   </span>
                 </div>
-                <h1 className="text-2xl font-display font-bold text-foreground sm:text-3xl">
+                <h1 className="text-2xl font-display font-bold text-card-foreground sm:text-3xl">
                   {profile?.firstName && profile?.lastName
                     ? `${profile.firstName} ${profile.lastName}`
                     : 'My Hire Dashboard'}
@@ -223,16 +223,16 @@ export default function CustomerAccountPage() {
             </div>
 
             <div className="mt-4 md:mt-0 flex items-center gap-3">
-              <Button variant="gold" size="sm" asChild>
+              <Button variant="gold" size="sm" className="rounded-full font-bold shadow-md shadow-gold/20" asChild>
                 <Link href="/fleet">
-                  <Plus className="mr-1.5 h-4 w-4" /> Book Another Car
+                  <Plus className="mr-1.5 h-4 w-4" /> <span>Book Another Car</span>
                 </Link>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => signOut()}
-                className="text-xs text-slate-600 hover:text-red-600"
+                className="text-xs text-muted-foreground hover:text-red-500 rounded-full font-semibold"
               >
                 <LogOut className="mr-1.5 h-3.5 w-3.5" /> Sign Out
               </Button>
@@ -241,34 +241,34 @@ export default function CustomerAccountPage() {
         )}
 
         {/* Tab Filters */}
-        <div className="mt-8 flex items-center justify-between border-b border-gray-200 pb-3">
+        <div className="mt-8 flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveTab('all')}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                 activeTab === 'all'
-                  ? 'bg-midnight text-white shadow-sm'
-                  : 'bg-white text-muted-foreground hover:bg-gray-100'
+                  ? 'bg-gold text-midnight shadow-md shadow-gold/20'
+                  : 'bg-muted text-foreground/80 hover:bg-muted/80 hover:text-foreground'
               }`}
             >
               All Bookings ({bookings.length})
             </button>
             <button
               onClick={() => setActiveTab('upcoming')}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                 activeTab === 'upcoming'
-                  ? 'bg-midnight text-white shadow-sm'
-                  : 'bg-white text-muted-foreground hover:bg-gray-100'
+                  ? 'bg-gold text-midnight shadow-md shadow-gold/20'
+                  : 'bg-muted text-foreground/80 hover:bg-muted/80 hover:text-foreground'
               }`}
             >
               Upcoming ({upcomingBookings.length})
             </button>
             <button
               onClick={() => setActiveTab('past')}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                 activeTab === 'past'
-                  ? 'bg-midnight text-white shadow-sm'
-                  : 'bg-white text-muted-foreground hover:bg-gray-100'
+                  ? 'bg-gold text-midnight shadow-md shadow-gold/20'
+                  : 'bg-muted text-foreground/80 hover:bg-muted/80 hover:text-foreground'
               }`}
             >
               Past & History ({pastBookings.length})
@@ -279,7 +279,7 @@ export default function CustomerAccountPage() {
             <Button
               size="sm"
               variant="ghost"
-              className="text-xs text-muted-foreground hover:text-foreground h-8"
+              className="text-xs text-muted-foreground hover:text-foreground h-8 rounded-full"
               onClick={() => loadBookingsForEmail(customerEmail)}
             >
               Refresh
@@ -290,20 +290,20 @@ export default function CustomerAccountPage() {
         {/* Bookings List */}
         <div className="mt-6 space-y-4">
           {isLoadingBookings ? (
-            <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center">
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-12 text-center shadow-xs">
               <Loader2 className="mx-auto h-8 w-8 animate-spin text-gold" />
               <p className="mt-3 text-sm text-muted-foreground">Loading your reservations...</p>
             </div>
           ) : displayedBookings.length === 0 ? (
-            <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center">
-              <Car className="mx-auto h-12 w-12 text-gray-300" />
-              <h3 className="mt-3 text-lg font-bold text-foreground">No bookings found</h3>
+            <div className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-12 text-center shadow-xs">
+              <Car className="mx-auto h-12 w-12 text-gold" />
+              <h3 className="mt-3 text-lg font-bold text-card-foreground">No bookings found</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {customerEmail
                   ? `You do not have any reservations listed under ${customerEmail}.`
                   : 'Sign in or look up your email to view your booking history.'}
               </p>
-              <Button variant="gold" size="sm" className="mt-4" asChild>
+              <Button variant="gold" size="sm" className="mt-4 rounded-full font-bold shadow-md shadow-gold/20" asChild>
                 <Link href="/fleet">Explore Australian Fleet</Link>
               </Button>
             </div>
@@ -325,31 +325,31 @@ export default function CustomerAccountPage() {
               return (
                 <div
                   key={b.id}
-                  className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:border-gray-200"
+                  className="rounded-3xl border border-border/80 dark:border-white/10 bg-card p-6 shadow-md dark:shadow-black/40 transition-all hover:border-gold/30"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gray-100 pb-4 gap-2">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-border pb-4 gap-2">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-sm font-bold text-foreground">
+                      <span className="font-mono text-sm font-bold text-card-foreground">
                         {b.bookingNumber}
                       </span>
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                           b.status === 'CONFIRMED'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                             : b.status === 'CANCELLED'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-amber-100 text-amber-800'
+                              ? 'bg-red-500/15 text-red-600 dark:text-red-300 border border-red-500/30'
+                              : 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30'
                         }`}
                       >
                         {b.status}
                       </span>
-                      <span className="rounded-full bg-gray-100 text-gray-700 text-[10px] px-2 py-0.5 font-medium">
+                      <span className="rounded-full bg-muted text-muted-foreground text-[10px] px-2.5 py-0.5 font-medium border border-border">
                         Payment: {b.paymentStatus}
                       </span>
                     </div>
 
                     <div className="text-right">
-                      <span className="text-xs text-muted-foreground">Total: </span>
+                      <span className="text-xs text-muted-foreground font-medium">Total: </span>
                       <span className="text-lg font-bold font-display text-foreground">
                         ₹{b.finalAmount}
                       </span>
@@ -358,7 +358,7 @@ export default function CustomerAccountPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-xs">
                     <div>
-                      <p className="text-muted-foreground uppercase font-semibold text-[10px]">
+                      <p className="text-muted-foreground uppercase font-bold text-[10px]">
                         Vehicle ID
                       </p>
                       <p className="font-bold text-foreground text-sm mt-0.5">{b.vehicleId}</p>
@@ -368,7 +368,7 @@ export default function CustomerAccountPage() {
                     </div>
 
                     <div>
-                      <p className="text-muted-foreground uppercase font-semibold text-[10px]">
+                      <p className="text-muted-foreground uppercase font-bold text-[10px]">
                         Itinerary
                       </p>
                       <p className="font-medium text-foreground mt-0.5">
@@ -376,13 +376,13 @@ export default function CustomerAccountPage() {
                         {b.pickupLocation}
                       </p>
                       <p className="text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Calendar className="h-3 w-3 text-slate-400" />
+                        <Calendar className="h-3 w-3 text-gold" />
                         {pDate} ({b.pickupTime}) → {dDate} ({b.returnTime})
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-muted-foreground uppercase font-semibold text-[10px]">
+                      <p className="text-muted-foreground uppercase font-bold text-[10px]">
                         Driver
                       </p>
                       <p className="font-medium text-foreground mt-0.5">
@@ -395,16 +395,16 @@ export default function CustomerAccountPage() {
                   </div>
 
                   {b.cancellationReason && (
-                    <div className="mt-3 rounded-lg bg-red-50 p-2.5 text-xs text-red-700">
+                    <div className="mt-3 rounded-xl bg-red-500/10 border border-red-500/30 p-2.5 text-xs text-red-600 dark:text-red-300">
                       <strong>Cancellation Reason:</strong> {b.cancellationReason}
                     </div>
                   )}
 
                   {/* Footer actions */}
-                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                    <Button variant="outline" size="sm" className="text-xs" asChild>
+                  <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+                    <Button variant="outline" size="sm" className="text-xs rounded-full" asChild>
                       <Link href={`/booking/confirmation/${b.id}`}>
-                        View Confirmation Voucher <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                        <span>View Confirmation Voucher</span> <ChevronRight className="ml-1 h-3.5 w-3.5" />
                       </Link>
                     </Button>
 
@@ -412,7 +412,7 @@ export default function CustomerAccountPage() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="text-xs"
+                        className="text-xs rounded-full"
                         onClick={() => {
                           setCancellingBooking(b);
                           setCancelReason('');
@@ -433,17 +433,16 @@ export default function CustomerAccountPage() {
       {/* Cancellation Dialog Modal */}
       {cancellingBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-display font-bold text-foreground">
+          <div className="w-full max-w-md rounded-3xl bg-card text-card-foreground border border-border p-6 shadow-2xl space-y-4">
+            <h3 className="text-lg font-display font-bold text-card-foreground">
               Cancel Reservation {cancellingBooking.bookingNumber}
             </h3>
-            <p className="text-xs text-muted-foreground">
-              Are you sure you want to cancel this booking? Please provide a reason for our
-              operations team.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Are you sure you want to cancel this booking? Please provide a reason for our operations team.
             </p>
 
             <div>
-              <Label htmlFor="cancelReason" className="text-xs font-semibold">
+              <Label htmlFor="cancelReason" className="text-xs font-bold text-foreground">
                 Reason for Cancellation *
               </Label>
               <Input
@@ -451,14 +450,14 @@ export default function CustomerAccountPage() {
                 placeholder="e.g. Travel plan changed, flight cancelled"
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                className="mt-1 text-xs"
+                className="mt-1.5 text-xs rounded-xl"
               />
             </div>
 
             {cancelFeedback && (
               <p
-                className={`text-xs ${
-                  cancelFeedback.success ? 'text-emerald-600 font-semibold' : 'text-red-600'
+                className={`text-xs font-medium ${
+                  cancelFeedback.success ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
                 }`}
               >
                 {cancelFeedback.message}
@@ -471,6 +470,7 @@ export default function CustomerAccountPage() {
                 size="sm"
                 disabled={isSubmittingCancel}
                 onClick={() => setCancellingBooking(null)}
+                className="rounded-full"
               >
                 Keep Booking
               </Button>
@@ -479,6 +479,7 @@ export default function CustomerAccountPage() {
                 size="sm"
                 disabled={isSubmittingCancel || !cancelReason.trim()}
                 onClick={handleCancelBooking}
+                className="rounded-full font-bold"
               >
                 {isSubmittingCancel ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -493,3 +494,4 @@ export default function CustomerAccountPage() {
     </main>
   );
 }
+

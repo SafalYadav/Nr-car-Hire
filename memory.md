@@ -183,6 +183,26 @@ The six mandatory source-of-truth files are:
   - Layered multi-directional midnight gradients (`from-midnight/95 via-midnight/80 to-midnight/65`) and subtle ambient gold glow to maintain 100% contrast, legibility, and accessibility for the hero text and booking widget.
   - Full mobile and desktop responsiveness with `autoPlay`, `loop`, `muted`, and `playsInline`.
 
+### Priority 8: Premium Luxury Redesign & Light/Dark Theme Switch
+- [x] **Theme Architecture (Light Mode Default + Dark Mode Switch)**:
+  - Created `components/theme/theme-provider.tsx`: Context provider default configured to **Premium Light Mode**, with persistence to `localStorage['nr-theme-preference']`.
+  - Added anti-FOUC inline script in `app/layout.tsx` `<head>` to prevent flash of theme on page load.
+  - Created `components/theme/theme-toggle.tsx`: Animated Sun/Moon toggle button mounted in both desktop Header navbar and mobile navigation drawer.
+  - Configured full CSS design tokens in `app/globals.css`: light mode (`:root`) with crisp white/cream backgrounds, dark slate typography, and gold highlights; dark mode (`.dark`) with high-contrast rich graphite/obsidian and warm gold; luxury glassmorphism utilities (`.luxury-glass`, `.luxury-card`, `.gold-gradient-text`).
+- [x] **Homepage, Sections & Cards Polish**:
+  - `components/shared/header.tsx` & `components/shared/mobile-nav.tsx`: Refined luxury navigation, responsive theme toggle, pill links, glassmorphic scrolled header.
+  - `components/shared/hero.tsx`: Enhanced typography with metallic gold gradient headline, gold badge with sparkle icon, high-contrast text, preserved full background video.
+  - `components/shared/booking-widget.tsx`: Upgraded to glassmorphic luxury card with live fleet badge, gold map/calendar icons, rounded inputs, and search CTA.
+  - `components/shared/vehicle-card.tsx` & `components/shared/fleet-teaser.tsx`: Luxury car card elevation, specs pills grid (seats, gear, fuel, bags), daily rate INR typography, view details CTA.
+  - `components/shared/why-nr.tsx`, `components/shared/services.tsx`, `components/shared/locations.tsx`, `components/shared/reviews.tsx`, `components/shared/cta-section.tsx`: Upgraded all section cards to semantic theme variables.
+- [x] **Fleet Browse, Vehicle Detail & Booking Flow**:
+  - `app/fleet/page.tsx` & `components/fleet/fleet-catalog.tsx`: Responsive luxury search bar, gearbox filter, sort order dropdown, category filter pills.
+  - `app/fleet/[vehicleId]/page.tsx` & `components/fleet/vehicle-availability-checker.tsx`: Studio showcase, specs pills, rental inclusions, and 1-click booking CTA.
+  - `components/booking/booking-flow.tsx`, `app/book/[vehicleId]/page.tsx`, `app/booking/confirmation/[bookingId]/page.tsx`, `app/account/page.tsx`: Full semantic theme upgrade across all 5 booking steps, summary cards, and confirmation vouchers.
+- [x] **ElevenLabs AI Concierge UI Polish**:
+  - Preserved 100% of official `@elevenlabs/react` hooks, WebSocket connection, signed URL route, and dynamic first message/voice.
+  - Elevated floating trigger with pulsing ambient golden rings, animated soundwave visualizer, high-contrast message bubbles, and action chips.
+
 ## Verification Metrics
 
 - Build: PASS (`npm run build` — 49/49 static & dynamic routes compiled)
@@ -190,3 +210,4 @@ The six mandatory source-of-truth files are:
 - Tests: PASS (`npm test` — 26/26 test files, 227/227 unit tests pass)
 - Architecture Suite: PASS (`tests/unit/ai-assistant-architecture.test.ts` — 9/9 tests pass)
 - Dev Server: RUNNING (`next dev --webpack` on `http://localhost:3000`)
+

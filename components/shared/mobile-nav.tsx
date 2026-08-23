@@ -5,7 +5,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { X, LogIn, UserCheck } from 'lucide-react';
-
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { TransitionLink } from '@/components/shared/transition-link';
 
 interface MobileNavProps {
@@ -47,7 +47,7 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
             animate={{ opacity: 1 }}
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -58,17 +58,17 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
             animate={{ x: 0 }}
             exit={shouldReduceMotion ? {} : { x: '100%' }}
             transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-            className="fixed right-0 top-0 z-50 flex h-full w-[280px] flex-col bg-white shadow-2xl lg:hidden"
+            className="fixed right-0 top-0 z-50 flex h-full w-[300px] flex-col bg-card text-card-foreground border-l border-border shadow-2xl lg:hidden"
             role="dialog"
             aria-modal="true"
             aria-label="Mobile navigation"
           >
-            {/* Close button */}
-            <div className="flex h-16 items-center justify-between px-4">
+            {/* Header */}
+            <div className="flex h-16 items-center justify-between px-5 border-b border-border">
               <TransitionLink
                 href="/"
                 onClick={onClose}
-                className="text-lg font-display font-extrabold tracking-tight text-midnight"
+                className="text-lg font-display font-extrabold tracking-tight text-foreground"
               >
                 NR<span className="text-gold"> Car Hire</span>
               </TransitionLink>
@@ -76,7 +76,7 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
                 ref={closeButtonRef}
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-[--radius-sm] text-foreground transition-colors hover:bg-gray-100"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5" />
@@ -84,19 +84,19 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
             </div>
 
             {/* Nav links */}
-            <nav className="flex-1 px-4 pt-4" aria-label="Mobile navigation">
+            <nav className="flex-1 px-4 pt-4 overflow-y-auto" aria-label="Mobile navigation">
               <ul className="space-y-1" role="list">
                 {links.map((link, i) => (
                   <motion.li
                     key={link.href}
                     initial={shouldReduceMotion ? {} : { opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 + i * 0.05, duration: 0.3 }}
+                    transition={{ delay: 0.05 + i * 0.04, duration: 0.25 }}
                   >
                     <TransitionLink
                       href={link.href}
                       onClick={onClose}
-                      className="block rounded-[--radius-sm] px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-gray-50"
+                      className="block rounded-xl px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-gold"
                     >
                       {link.label}
                     </TransitionLink>
@@ -105,13 +105,18 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
               </ul>
             </nav>
 
-            {/* CTA & Auth in Mobile Menu */}
-            <div className="p-4 space-y-2 border-t border-gray-100">
+            {/* Theme switcher & CTA in Mobile Menu */}
+            <div className="p-5 space-y-3 border-t border-border bg-muted/30">
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-xs font-semibold text-muted-foreground">Appearance</span>
+                <ThemeToggle variant="pill" />
+              </div>
+
               {isAuthenticated ? (
                 <Button
                   variant="outline"
                   size="default"
-                  className="w-full text-xs font-semibold border-gold/40 bg-white text-midnight hover:bg-gold/10 shadow-xs"
+                  className="w-full text-xs font-semibold border-gold/40 bg-card text-foreground hover:bg-gold/10 shadow-xs rounded-xl"
                   onClick={onClose}
                   asChild
                 >
@@ -124,7 +129,7 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
                 <Button
                   variant="outline"
                   size="default"
-                  className="w-full text-xs font-semibold border-gold/40 bg-white text-midnight hover:bg-gold/10 shadow-xs"
+                  className="w-full text-xs font-semibold border-gold/40 bg-card text-foreground hover:bg-gold/10 shadow-xs rounded-xl"
                   onClick={onClose}
                   asChild
                 >
@@ -135,7 +140,7 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
                 </Button>
               )}
 
-              <Button variant="gold" size="lg" className="w-full" onClick={onClose} asChild>
+              <Button variant="gold" size="lg" className="w-full rounded-xl shadow-md shadow-gold/20" onClick={onClose} asChild>
                 <TransitionLink href="/#booking">Book Now</TransitionLink>
               </Button>
             </div>
@@ -145,3 +150,4 @@ export function MobileNav({ isOpen, onClose, links }: MobileNavProps) {
     </AnimatePresence>
   );
 }
+

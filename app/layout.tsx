@@ -5,6 +5,7 @@ import { Footer } from '@/components/shared/footer';
 import { AiAssistantWidget } from '@/components/ai/ai-assistant-widget';
 import { PageTransitionProvider } from '@/components/shared/page-transition';
 import { AuthProvider } from '@/lib/auth/auth-context';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 import './globals.css';
 
 const inter = Inter({
@@ -64,17 +65,45 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
-      <body className="min-h-dvh font-sans">
-        <AuthProvider>
-          <PageTransitionProvider>
-            <Header />
-            {children}
-            <Footer />
-            <AiAssistantWidget />
-          </PageTransitionProvider>
-        </AuthProvider>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${manrope.variable}`}
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('nr-theme-preference') || 'light';
+                var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                  document.documentElement.style.colorScheme = 'dark';
+                } else {
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                  document.documentElement.style.colorScheme = 'light';
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-dvh font-sans bg-background text-foreground">
+        <ThemeProvider>
+          <AuthProvider>
+            <PageTransitionProvider>
+              <Header />
+              {children}
+              <Footer />
+              <AiAssistantWidget />
+            </PageTransitionProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
+

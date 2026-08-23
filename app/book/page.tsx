@@ -14,7 +14,7 @@ export default function BookPage() {
   const defaultVehicle = allVehicles[0];
 
   return (
-    <main className="min-h-screen bg-gray-50/50 pt-24 pb-20">
+    <main className="min-h-screen bg-background text-foreground pt-24 pb-20">
       <Suspense
         fallback={
           <div className="flex h-96 items-center justify-center">
@@ -27,3 +27,4 @@ export default function BookPage() {
     </main>
   );
 }
+

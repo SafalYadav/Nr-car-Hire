@@ -4,13 +4,11 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/shared/mobile-nav';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { cn } from '@/lib/utils/cn';
-import { Menu } from 'lucide-react';
-
+import { Menu, LogIn } from 'lucide-react';
 import { TransitionLink } from '@/components/shared/transition-link';
-
 import { useAuth } from '@/lib/auth/auth-context';
-import { LogIn } from 'lucide-react';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -45,7 +43,7 @@ export function Header() {
         className={cn(
           'fixed left-0 right-0 top-0 z-50 transition-all duration-300',
           isScrolled
-            ? 'border-b border-white/10 bg-white/95 shadow-sm backdrop-blur-md'
+            ? 'border-b border-black/5 dark:border-white/10 bg-white/90 dark:bg-midnight/90 shadow-sm backdrop-blur-md'
             : 'bg-transparent',
         )}
       >
@@ -56,13 +54,13 @@ export function Header() {
           {/* Logo */}
           <TransitionLink
             href="/"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 group"
             aria-label="NR Car Hire home"
           >
             <span
               className={cn(
                 'text-xl font-display font-extrabold tracking-tight transition-colors duration-300 lg:text-2xl',
-                isScrolled ? 'text-midnight' : 'text-white',
+                isScrolled ? 'text-foreground' : 'text-white',
               )}
             >
               NR
@@ -77,10 +75,10 @@ export function Header() {
                 <TransitionLink
                   href={link.href}
                   className={cn(
-                    'rounded-[--radius-sm] px-4 py-2 text-sm font-medium transition-colors duration-200 hover:bg-white/10',
+                    'rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200',
                     isScrolled
-                      ? 'text-foreground/70 hover:text-foreground hover:bg-gray-100'
-                      : 'text-white/80 hover:text-white',
+                      ? 'text-foreground/80 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10'
+                      : 'text-white/85 hover:text-white hover:bg-white/10',
                   )}
                 >
                   {link.label}
@@ -89,18 +87,25 @@ export function Header() {
             ))}
           </ul>
 
-          {/* Desktop CTA & Auth */}
+          {/* Desktop CTA, Auth & Theme Toggle */}
           <div className="hidden lg:flex items-center gap-3">
+            <ThemeToggle
+              className={cn(
+                'transition-colors',
+                !isScrolled && 'border-white/20 bg-white/10 text-white hover:bg-white/20 hover:border-gold/50'
+              )}
+            />
+
             {isAuthenticated ? (
               <Button
                 variant={isScrolled ? 'outline' : 'outlineLight'}
                 size="default"
                 asChild
                 className={cn(
-                  'font-semibold text-xs transition-all duration-200',
+                  'font-semibold text-xs transition-all duration-200 rounded-full',
                   isScrolled
-                    ? 'border-gray-300 bg-gray-50/80 text-midnight hover:bg-gray-100 hover:text-midnight shadow-sm'
-                    : 'border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white shadow-sm',
+                    ? 'border-border bg-card/80 text-foreground hover:bg-muted shadow-xs'
+                    : 'border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white shadow-xs',
                 )}
               >
                 <TransitionLink href="/account" className="flex items-center gap-2">
@@ -116,10 +121,10 @@ export function Header() {
                 size="default"
                 asChild
                 className={cn(
-                  'font-semibold text-xs transition-all duration-200',
+                  'font-semibold text-xs transition-all duration-200 rounded-full',
                   isScrolled
-                    ? 'border-gray-300 bg-gray-50/80 text-midnight hover:bg-gray-100 hover:text-midnight shadow-sm'
-                    : 'border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white shadow-sm',
+                    ? 'border-border bg-card/80 text-foreground hover:bg-muted shadow-xs'
+                    : 'border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white shadow-xs',
                 )}
               >
                 <TransitionLink href="/login" className="flex items-center gap-1.5">
@@ -129,24 +134,33 @@ export function Header() {
               </Button>
             )}
 
-            <Button variant="gold" size="default" asChild>
+            <Button variant="gold" size="default" className="rounded-full shadow-md shadow-gold/20" asChild>
               <TransitionLink href="/#booking">Book Now</TransitionLink>
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            onClick={() => setIsMobileOpen(true)}
-            className={cn(
-              'inline-flex h-10 w-10 items-center justify-center rounded-[--radius-sm] transition-colors lg:hidden',
-              isScrolled ? 'text-foreground hover:bg-gray-100' : 'text-white hover:bg-white/10',
-            )}
-            aria-label="Open menu"
-            aria-expanded={isMobileOpen}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {/* Mobile Theme Toggle & Menu Button */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <ThemeToggle
+              className={cn(
+                'h-9 w-9',
+                !isScrolled && 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+              )}
+            />
+
+            <button
+              type="button"
+              onClick={() => setIsMobileOpen(true)}
+              className={cn(
+                'inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors',
+                isScrolled ? 'text-foreground hover:bg-black/5 dark:hover:bg-white/10' : 'text-white hover:bg-white/10',
+              )}
+              aria-label="Open menu"
+              aria-expanded={isMobileOpen}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
         </nav>
       </header>
 
@@ -154,3 +168,4 @@ export function Header() {
     </>
   );
 }
+

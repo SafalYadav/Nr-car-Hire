@@ -9,7 +9,6 @@ import {
   Sparkles,
   X,
   Volume2,
-  VolumeX,
   ChevronDown,
   ArrowRight,
   Loader2,
@@ -244,7 +243,7 @@ function AiAssistantWidgetInner() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="hidden md:flex items-center gap-2 rounded-full border border-gold/40 bg-midnight/90 px-3.5 py-1.5 shadow-xl backdrop-blur-md text-xs font-medium text-white pointer-events-none"
+            className="hidden md:flex items-center gap-2 rounded-full border border-gold/40 bg-card/95 text-card-foreground px-4 py-1.5 shadow-xl backdrop-blur-md text-xs font-semibold pointer-events-none"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75" />
@@ -256,21 +255,21 @@ function AiAssistantWidgetInner() {
 
         <motion.button
           onClick={handleOpenToggle}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
           aria-expanded={isOpen}
           aria-label="Open NR Concierge AI Assistant"
           className={cn(
             'group relative flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gold/30',
             isSpeaking
-              ? 'bg-linear-to-br from-gold via-amber-600 to-midnight text-midnight border-2 border-gold'
+              ? 'bg-gradient-to-br from-amber-400 via-gold to-amber-600 text-midnight border-2 border-gold shadow-[0_0_30px_rgba(201,164,92,0.6)]'
               : isLiveConnected
-              ? 'bg-linear-to-br from-emerald-500 to-midnight text-white border-2 border-emerald-400'
-              : 'bg-linear-to-br from-midnight via-slate-900 to-midnight text-gold border-2 border-gold/60 hover:border-gold'
+              ? 'bg-gradient-to-br from-emerald-500 to-teal-700 text-white border-2 border-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.5)]'
+              : 'bg-midnight text-gold border-2 border-gold/60 hover:border-gold shadow-lg shadow-black/30'
           )}
         >
           {isSpeaking && (
-            <span className="absolute inset-0 rounded-full animate-ping bg-gold/30 duration-1000" />
+            <span className="absolute inset-0 rounded-full animate-ping bg-gold/40 duration-1000" />
           )}
 
           {isOpen ? (
@@ -297,27 +296,27 @@ function AiAssistantWidgetInner() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 flex w-[calc(100vw-2rem)] max-w-sm sm:max-w-md h-[580px] max-h-[82vh] flex-col overflow-hidden rounded-3xl border border-gold/30 bg-midnight/95 text-white shadow-2xl backdrop-blur-xl"
+            className="fixed bottom-24 right-4 sm:right-6 z-50 flex w-[calc(100vw-2rem)] max-w-sm sm:max-w-md h-[580px] max-h-[82vh] flex-col overflow-hidden rounded-3xl border border-gold/30 bg-card/95 text-card-foreground shadow-2xl backdrop-blur-2xl"
             role="dialog"
             aria-modal="true"
             aria-label="NR Concierge AI Assistant"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5 bg-white/5">
+            <div className="flex items-center justify-between border-b border-border px-5 py-3.5 bg-muted/40">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gold/15 border border-gold/30 text-gold shadow-inner">
+                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gold/15 border border-gold/30 text-gold shadow-xs">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-display font-bold text-sm tracking-wide text-white">
+                    <h3 className="font-display font-bold text-sm tracking-wide text-foreground">
                       NR Concierge
                     </h3>
-                    <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold border border-gold/30 uppercase tracking-wider">
+                    <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-bold text-gold border border-gold/30 uppercase tracking-wider">
                       ElevenLabs AI Agent
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-300 flex items-center gap-1.5">
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 font-medium">
                     <span
                       className={cn(
                         'inline-block h-1.5 w-1.5 rounded-full',
@@ -331,10 +330,10 @@ function AiAssistantWidgetInner() {
                     {isSpeaking
                       ? 'AI Speaking (Sia)...'
                       : isLiveConnected
-                      ? 'Live Voice Session Active'
+                      ? 'Live Voice Active'
                       : isConnecting
-                      ? 'Connecting to ElevenLabs...'
-                      : 'Authoritative Fleet Agent'}
+                      ? 'Connecting...'
+                      : 'Fleet Intelligence Online'}
                   </p>
                 </div>
               </div>
@@ -345,21 +344,21 @@ function AiAssistantWidgetInner() {
                   type="button"
                   onClick={isLiveConnected ? endLiveConversation : startLiveConversation}
                   className={cn(
-                    'rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all border flex items-center gap-1',
+                    'rounded-full px-2.5 py-1 text-[10px] font-bold transition-all border flex items-center gap-1 shadow-xs',
                     isLiveConnected
                       ? 'bg-emerald-500 text-white border-emerald-400'
-                      : 'bg-white/5 text-gray-300 border-white/10 hover:text-white hover:border-gold/40'
+                      : 'bg-background text-foreground border-border hover:border-gold/50'
                   )}
                   title={isLiveConnected ? 'End Voice Session' : 'Start Realtime Voice Session'}
                 >
-                  {isLiveConnected ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
-                  <span>{isLiveConnected ? 'Live Voice On' : 'Start Voice'}</span>
+                  {isLiveConnected ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3 text-gold" />}
+                  <span>{isLiveConnected ? 'Voice On' : 'Voice'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={resetChat}
-                  className="rounded-full p-1.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                  className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   aria-label="Reset Conversation"
                   title="Reset Chat"
                 >
@@ -369,7 +368,7 @@ function AiAssistantWidgetInner() {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="rounded-full p-1.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                  className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   aria-label="Minimize Assistant"
                 >
                   <ChevronDown className="h-5 w-5" />
@@ -379,12 +378,12 @@ function AiAssistantWidgetInner() {
 
             {/* Voice Mode Visualizer Screen */}
             {isLiveConnected && (
-              <div className="flex flex-col items-center justify-center p-5 bg-linear-to-b from-white/5 via-gold/5 to-transparent border-b border-white/10">
+              <div className="flex flex-col items-center justify-center p-5 bg-gradient-to-b from-gold/10 via-gold/5 to-transparent border-b border-border">
                 <div
                   className={cn(
                     'relative flex h-20 w-20 items-center justify-center rounded-full transition-all duration-500',
                     isSpeaking
-                      ? 'shadow-[0_0_40px_rgba(197,168,128,0.5)] border border-gold'
+                      ? 'shadow-[0_0_40px_rgba(201,164,92,0.5)] border border-gold'
                       : 'shadow-[0_0_40px_rgba(16,185,129,0.4)] border border-emerald-400'
                   )}
                 >
@@ -398,10 +397,10 @@ function AiAssistantWidgetInner() {
 
                   <div
                     className={cn(
-                      'flex h-14 w-14 items-center justify-center rounded-full transition-all',
+                      'flex h-14 w-14 items-center justify-center rounded-full transition-all shadow-md',
                       isSpeaking
-                        ? 'bg-linear-to-br from-gold to-amber-600 text-midnight scale-105'
-                        : 'bg-linear-to-br from-emerald-400 to-teal-600 text-white'
+                        ? 'bg-gradient-to-br from-gold to-amber-600 text-midnight scale-105'
+                        : 'bg-gradient-to-br from-emerald-400 to-teal-600 text-white'
                     )}
                   >
                     {isSpeaking ? (
@@ -413,13 +412,13 @@ function AiAssistantWidgetInner() {
                 </div>
 
                 <div className="mt-2.5 text-center">
-                  <p className="text-xs font-semibold text-gold">
+                  <p className="text-xs font-bold text-gold">
                     {isSpeaking
                       ? 'ElevenLabs Agent Speaking (Sia)...'
                       : 'Listening... Speak naturally anytime'}
                   </p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    Persistent real-time microphone session • No restart required
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Persistent real-time session • Natural Australian accent
                   </p>
                 </div>
               </div>
@@ -427,12 +426,12 @@ function AiAssistantWidgetInner() {
 
             {/* Error banner */}
             {errorMessage && (
-              <div className="mx-4 mt-2 rounded-xl bg-red-500/15 border border-red-500/30 p-2.5 text-xs text-red-200 flex items-center justify-between">
+              <div className="mx-4 mt-2 rounded-xl bg-red-500/15 border border-red-500/30 p-2.5 text-xs text-red-600 dark:text-red-300 flex items-center justify-between">
                 <span>{errorMessage}</span>
                 <button
                   type="button"
                   onClick={() => setErrorMessage(null)}
-                  className="text-red-300 hover:text-white p-0.5"
+                  className="text-red-500 hover:text-red-700 dark:text-red-300 dark:hover:text-white p-0.5"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -451,17 +450,17 @@ function AiAssistantWidgetInner() {
                 >
                   <div
                     className={cn(
-                      'rounded-2xl px-3.5 py-2.5 max-w-[88%] shadow-md leading-relaxed',
+                      'rounded-2xl px-3.5 py-2.5 max-w-[88%] shadow-xs leading-relaxed',
                       msg.role === 'user'
-                        ? 'bg-gold/25 text-white border border-gold/40 rounded-br-xs'
-                        : 'bg-white/10 text-gray-100 border border-white/10 rounded-bl-xs'
+                        ? 'bg-gold text-midnight font-medium rounded-br-xs'
+                        : 'bg-muted/70 text-foreground border border-border/80 rounded-bl-xs'
                     )}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
 
                     {/* Rich Suggested Vehicle Cards */}
                     {msg.suggestedVehicles && msg.suggestedVehicles.length > 0 && (
-                      <div className="mt-3 space-y-2 pt-2 border-t border-white/10">
+                      <div className="mt-3 space-y-2 pt-2 border-t border-border">
                         <p className="text-[10px] uppercase tracking-wider text-gold font-bold">
                           Recommended Fleet Options:
                         </p>
@@ -469,20 +468,20 @@ function AiAssistantWidgetInner() {
                           {msg.suggestedVehicles.map((v) => (
                             <div
                               key={v.id}
-                              className="rounded-xl bg-black/40 border border-gold/30 p-2.5 flex items-center justify-between gap-2"
+                              className="rounded-xl bg-background/90 border border-gold/30 p-2.5 flex items-center justify-between gap-2 shadow-xs"
                             >
                               <div className="min-w-0 flex-1">
-                                <p className="font-semibold text-white text-xs truncate">
+                                <p className="font-semibold text-foreground text-xs truncate">
                                   {v.year} {v.make} {v.model}
                                 </p>
-                                <p className="text-[10px] text-gray-300">
+                                <p className="text-[10px] text-muted-foreground">
                                   {v.category} • ₹{v.dailyRate}/day • {v.transmission}
                                 </p>
                               </div>
                               <Link
                                 href={v.bookingUrl}
                                 onClick={() => setIsOpen(false)}
-                                className="inline-flex items-center gap-1 rounded-lg bg-gold px-2.5 py-1 text-[11px] font-semibold text-midnight hover:bg-gold-light transition-colors whitespace-nowrap shadow-sm"
+                                className="inline-flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-[11px] font-bold text-midnight hover:bg-gold-light transition-colors whitespace-nowrap shadow-xs"
                               >
                                 <span>Book</span>
                                 <ArrowRight className="h-3 w-3" />
@@ -495,28 +494,28 @@ function AiAssistantWidgetInner() {
 
                     {/* Rich Availability Badge Card */}
                     {msg.availabilityCard && (
-                      <div className="mt-2.5 rounded-xl bg-black/40 border border-white/10 p-2.5 text-[11px]">
+                      <div className="mt-2.5 rounded-xl bg-background/90 border border-border p-2.5 text-[11px] shadow-xs">
                         <div className="flex items-center gap-1.5 font-semibold">
                           <span
                             className={cn(
                               'h-2 w-2 rounded-full',
-                              msg.availabilityCard.isAvailable ? 'bg-emerald-400' : 'bg-red-400'
+                              msg.availabilityCard.isAvailable ? 'bg-emerald-500' : 'bg-red-500'
                             )}
                           />
-                          <span className={msg.availabilityCard.isAvailable ? 'text-emerald-400' : 'text-red-300'}>
+                          <span className={msg.availabilityCard.isAvailable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}>
                             {msg.availabilityCard.isAvailable
                               ? 'Live Availability: Available'
                               : 'Live Availability: Unavailable'}
                           </span>
                         </div>
-                        <p className="text-gray-300 mt-1">
+                        <p className="text-muted-foreground mt-1">
                           Dates: {msg.availabilityCard.pickupDate} to {msg.availabilityCard.dropoffDate}
                         </p>
                         {msg.availabilityCard.bookingUrl && (
                           <Link
                             href={msg.availabilityCard.bookingUrl}
                             onClick={() => setIsOpen(false)}
-                            className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-gold hover:underline"
+                            className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-gold hover:underline"
                           >
                             <span>Proceed to direct booking</span>
                             <ArrowRight className="h-3 w-3" />
@@ -527,34 +526,34 @@ function AiAssistantWidgetInner() {
 
                     {/* Rich Price Breakdown Card */}
                     {msg.priceCard && (
-                      <div className="mt-2.5 rounded-xl bg-black/40 border border-gold/30 p-2.5 text-[11px]">
-                        <p className="font-semibold text-gold mb-1">Authoritative Price Quote:</p>
-                        <div className="space-y-0.5 text-gray-300">
+                      <div className="mt-2.5 rounded-xl bg-background/90 border border-gold/30 p-2.5 text-[11px] shadow-xs">
+                        <p className="font-bold text-gold mb-1">Authoritative Price Quote:</p>
+                        <div className="space-y-0.5 text-muted-foreground">
                           <div className="flex justify-between">
                             <span>Base ({msg.priceCard.rentalDays} days @ ₹{msg.priceCard.dailyRate}):</span>
-                            <span>₹{msg.priceCard.baseAmount}</span>
+                            <span className="font-semibold text-foreground">₹{msg.priceCard.baseAmount}</span>
                           </div>
                           {msg.priceCard.extrasAmount > 0 && (
                             <div className="flex justify-between">
                               <span>Selected Extras:</span>
-                              <span>₹{msg.priceCard.extrasAmount}</span>
+                              <span className="font-semibold text-foreground">₹{msg.priceCard.extrasAmount}</span>
                             </div>
                           )}
                           {msg.priceCard.discountAmount > 0 && (
-                            <div className="flex justify-between text-emerald-400">
+                            <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                               <span>Promo ({msg.priceCard.promoCode}):</span>
                               <span>-₹{msg.priceCard.discountAmount}</span>
                             </div>
                           )}
-                          <div className="flex justify-between font-bold text-white pt-1 border-t border-white/10 mt-1">
+                          <div className="flex justify-between font-bold text-foreground pt-1 border-t border-border mt-1">
                             <span>Estimated Total:</span>
-                            <span className="text-gold">₹{msg.priceCard.finalAmount} INR</span>
+                            <span className="text-gold font-extrabold">₹{msg.priceCard.finalAmount} INR</span>
                           </div>
                         </div>
                       </div>
                     )}
 
-                    <span className="block text-[9px] text-gray-400 mt-1 text-right">
+                    <span className="block text-[9px] text-muted-foreground mt-1 text-right">
                       {msg.timestamp}
                     </span>
                   </div>
@@ -567,7 +566,7 @@ function AiAssistantWidgetInner() {
                           key={idx}
                           type="button"
                           onClick={() => handleSendMessage(action)}
-                          className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-gray-300 hover:border-gold/50 hover:bg-gold/10 hover:text-white transition-colors"
+                          className="rounded-full border border-border bg-card/90 px-3 py-1 text-[10px] font-medium text-foreground/80 hover:border-gold hover:bg-gold/10 hover:text-foreground transition-all shadow-2xs"
                         >
                           {action}
                         </button>
@@ -580,7 +579,7 @@ function AiAssistantWidgetInner() {
               {isConnecting && (
                 <div className="flex items-center gap-2 text-gold text-xs py-2">
                   <Loader2 className="h-4 w-4 animate-spin text-gold" />
-                  <span>Connecting to ElevenLabs Conversational AI Agent...</span>
+                  <span>Connecting to ElevenLabs Agent...</span>
                 </div>
               )}
 
@@ -588,7 +587,7 @@ function AiAssistantWidgetInner() {
             </div>
 
             {/* Input Footer */}
-            <div className="border-t border-white/10 p-3 bg-white/5">
+            <div className="border-t border-border p-3 bg-muted/40">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -600,10 +599,10 @@ function AiAssistantWidgetInner() {
                   type="button"
                   onClick={isLiveConnected ? endLiveConversation : startLiveConversation}
                   className={cn(
-                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all',
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all shadow-xs',
                     isLiveConnected
                       ? 'bg-emerald-500 border-emerald-400 text-white animate-pulse'
-                      : 'bg-white/10 border-white/15 text-gold hover:bg-white/20'
+                      : 'bg-background border-border text-gold hover:border-gold/50'
                   )}
                   title={isLiveConnected ? 'Stop Live Voice' : 'Start Live Voice Session'}
                   aria-label="Microphone"
@@ -615,7 +614,7 @@ function AiAssistantWidgetInner() {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Ask about cars, prices, airport hubs, or booking..."
-                  className="flex-1 bg-white/10 border-white/15 text-white placeholder:text-gray-400 text-xs rounded-2xl h-10 focus-visible:ring-gold/50"
+                  className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground text-xs rounded-2xl h-10 focus-visible:ring-gold/30 focus-visible:border-gold"
                 />
 
                 <Button
@@ -644,3 +643,4 @@ export function AiAssistantWidget() {
     </ConversationProvider>
   );
 }
+

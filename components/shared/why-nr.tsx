@@ -4,35 +4,35 @@ import { Car, DollarSign, CalendarCheck, Shield, Clock, Headphones } from 'lucid
 const features = [
   {
     icon: Car,
-    title: 'Premium Vehicles',
+    title: 'Immaculate Fleet',
     description:
-      'Well-maintained, late-model vehicles across every category from economy to luxury.',
+      'Meticulously serviced, late-model vehicles across every category from luxury German sedans to spacious 7-seater SUVs.',
   },
   {
     icon: DollarSign,
-    title: 'Transparent Pricing',
-    description: 'Clear daily rates with no hidden fees. What you see is what you pay.',
+    title: 'Honest Transparent Pricing',
+    description: 'Guaranteed upfront pricing with zero hidden counter fees, credit card surcharges, or surprise administrative costs.',
   },
   {
     icon: CalendarCheck,
-    title: 'Easy Booking',
-    description: 'Simple online booking process with instant confirmation and flexible options.',
+    title: 'Instant Online Reservation',
+    description: 'Seamless booking flow with instant digital confirmation, vehicle lock-in, and flexible cancellation options.',
   },
   {
     icon: Shield,
-    title: 'Reliable Service',
-    description: 'Dependable vehicles, on-time availability, and professional service standards.',
+    title: 'Comprehensive Zero-Excess Options',
+    description: 'Drive with total peace of mind with premium roadside protection and optional zero-excess damage coverage.',
   },
   {
     icon: Clock,
-    title: 'Flexible Rentals',
-    description: 'Daily, weekly, and monthly hire options to suit your schedule and needs.',
+    title: 'Flexible Hire Durations',
+    description: 'Short-term weekend getaways, weekly corporate hires, and long-term extended rentals tailored to your itinerary.',
   },
   {
     icon: Headphones,
-    title: 'Customer Support',
+    title: '24/7 Dedicated Concierge',
     description:
-      'Dedicated support team ready to assist with bookings, queries, and roadside help.',
+      'Dedicated Australian support team and conversational ElevenLabs AI concierge ready to assist you day and night.',
   },
 ];
 
@@ -40,41 +40,40 @@ export function WhyNR() {
   return (
     <section
       id="why-nr"
-      className="bg-white py-20 sm:py-24 lg:py-32"
+      className="bg-background py-20 sm:py-28"
       aria-labelledby="why-nr-heading"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <div className="text-center">
-            <span className="text-sm font-semibold uppercase tracking-wider text-gold">
-              Why Choose Us
+            <span className="text-xs font-bold uppercase tracking-widest text-gold">
+              The NR Standard
             </span>
             <h2
               id="why-nr-heading"
-              className="mt-3 text-3xl font-display font-bold tracking-tight text-foreground sm:text-4xl"
+              className="mt-3 text-3xl font-display font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl"
             >
-              Why NR Car Hire
+              Why Drive With NR Car Hire
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">
-              We focus on what matters — quality vehicles, honest pricing, and dependable service
-              across Australia.
+            <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground leading-relaxed">
+              We engineer our entire rental experience around elegance, speed, and reliability across Australian airport hubs.
             </p>
           </div>
         </ScrollReveal>
 
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-3">
           {features.map((feature, i) => {
             const Icon = feature.icon;
             return (
-              <ScrollReveal key={feature.title} delay={i * 0.08}>
-                <div className="group relative rounded-[--radius-xl] border border-gray-100 bg-white p-8 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5">
-                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-[--radius-lg] bg-gold/10 text-gold transition-colors duration-300 group-hover:bg-gold group-hover:text-white">
+              <ScrollReveal key={feature.title} delay={i * 0.06}>
+                <div className="group relative rounded-2xl border border-border/80 dark:border-white/10 bg-card text-card-foreground p-8 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/40 hover:shadow-xl dark:hover:shadow-black/40">
+                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10 text-gold transition-all duration-300 group-hover:bg-gold group-hover:text-midnight group-hover:scale-110 shadow-xs">
                     <Icon className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-display font-bold text-foreground">
+                  <h3 className="text-lg font-display font-bold text-card-foreground group-hover:text-gold transition-colors duration-200">
                     {feature.title}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
                     {feature.description}
                   </p>
                 </div>
@@ -86,3 +85,4 @@ export function WhyNR() {
     </section>
   );
 }
+

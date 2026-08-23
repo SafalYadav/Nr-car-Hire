@@ -1,11 +1,65 @@
 @import 'tailwindcss';
 @plugin "tailwindcss-animate";
 
+:root {
+  --background: #fbfbf9;
+  --foreground: #111317;
+  --card: #ffffff;
+  --card-foreground: #111317;
+  --popover: #ffffff;
+  --popover-foreground: #111317;
+  --primary: #111317;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f2ed;
+  --secondary-foreground: #111317;
+  --muted: #f3f2ed;
+  --muted-foreground: #606670;
+  --accent: #c9a45c;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e8e6df;
+  --input: #e8e6df;
+  --ring: #c9a45c;
+  --radius: 12px;
+
+  --color-gold: #c9a45c;
+  --color-gold-light: #dfc282;
+  --color-gold-dark: #a98339;
+  --color-midnight: #0b0d10;
+  --color-charcoal: #15181d;
+  --color-graphite: #1e2228;
+}
+
+.dark {
+  --background: #0b0d10;
+  --foreground: #f4f5f7;
+  --card: #13161c;
+  --card-foreground: #f4f5f7;
+  --popover: #13161c;
+  --popover-foreground: #f4f5f7;
+  --primary: #c9a45c;
+  --primary-foreground: #0b0d10;
+  --secondary: #1a1e26;
+  --secondary-foreground: #f4f5f7;
+  --muted: #181c24;
+  --muted-foreground: #9ba1ad;
+  --accent: #c9a45c;
+  --accent-foreground: #0b0d10;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #232833;
+  --input: #232833;
+  --ring: #c9a45c;
+}
+
 @theme {
   --color-midnight: #0b0d10;
   --color-charcoal: #15181d;
   --color-graphite: #1e2228;
   --color-gold: #c9a45c;
+  --color-gold-light: #dfc282;
+  --color-gold-dark: #a98339;
 
   --font-sans: var(--font-inter);
   --font-display: var(--font-manrope);
@@ -14,34 +68,35 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
+  --radius-2xl: 28px;
   --radius-full: 999px;
 
-  --color-border: var(--color-gray-200);
-  --color-input: var(--color-gray-200);
-  --color-ring: var(--color-gold);
-  --color-background: var(--color-white);
-  --color-foreground: var(--color-midnight);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 
-  --color-primary: var(--color-midnight);
-  --color-primary-foreground: var(--color-white);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  --color-secondary: var(--color-gray-100);
-  --color-secondary-foreground: var(--color-midnight);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
 
-  --color-destructive: var(--color-red-500);
-  --color-destructive-foreground: var(--color-white);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  --color-muted: var(--color-gray-100);
-  --color-muted-foreground: var(--color-gray-500);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 
-  --color-accent: var(--color-gold);
-  --color-accent-foreground: var(--color-white);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  --color-popover: var(--color-white);
-  --color-popover-foreground: var(--color-midnight);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 
-  --color-card: var(--color-white);
-  --color-card-foreground: var(--color-midnight);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 }
 
 @layer base {
@@ -54,7 +109,7 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased selection:bg-gold selection:text-white;
+    @apply bg-background text-foreground antialiased selection:bg-gold selection:text-white transition-colors duration-200;
   }
 
   h1,
@@ -64,6 +119,25 @@
   h5,
   h6 {
     @apply font-display tracking-tight;
+  }
+}
+
+/* Luxury Utilities */
+@layer utilities {
+  .luxury-glass {
+    @apply bg-white/80 dark:bg-midnight/80 backdrop-blur-md border border-black/5 dark:border-white/10 shadow-lg;
+  }
+
+  .luxury-card {
+    @apply bg-card text-card-foreground border border-border rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] transition-all duration-300;
+  }
+
+  .gold-gradient-text {
+    @apply bg-gradient-to-r from-amber-600 via-gold to-amber-500 bg-clip-text text-transparent;
+  }
+
+  .text-balance {
+    text-wrap: balance;
   }
 }
 
@@ -80,12 +154,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-}
-
-/* Animations */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
   }
 }
