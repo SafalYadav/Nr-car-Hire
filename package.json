@@ -12,7 +12,6 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@elevenlabs/react": "^1.13.0",
     "@google/genai": "^2.18.0",
     "@hookform/resolvers": "^5.9.1",
     "@supabase/supabase-js": "^2.112.0",

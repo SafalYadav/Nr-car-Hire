@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import { Header } from '@/components/shared/header';
 import { Footer } from '@/components/shared/footer';
-import { ElevenLabsAgentWidget } from '@/components/ai/elevenlabs-agent-widget';
+import { AiAssistantWidget } from '@/components/ai/ai-assistant-widget';
 import { PageTransitionProvider } from '@/components/shared/page-transition';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import './globals.css';
@@ -71,7 +71,7 @@ export default function RootLayout({
             <Header />
             {children}
             <Footer />
-            <ElevenLabsAgentWidget />
+            <AiAssistantWidget />
           </PageTransitionProvider>
         </AuthProvider>
       </body>

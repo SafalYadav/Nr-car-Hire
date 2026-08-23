@@ -165,12 +165,32 @@ The six mandatory source-of-truth files are:
     - Updated `verifyPayment` to dynamically upsert missing payment records upon valid HMAC-SHA256 signature verification rather than prematurely failing with 404.
     - Added `rzp.on('payment.failed')` error listener in `components/booking/booking-flow.tsx` to surface exact gateway error descriptions to the user.
 
+### Priority 6: In-House AI Assistant Architecture (Gemini + knowledge.md RAG + ElevenLabs TTS)
+- [x] **Architecture Transformation**:
+  - Removed client-side ElevenLabs Conversational Agent SDK (`@elevenlabs/react`) and obsolete widget.
+  - Implemented custom in-house AI architecture: **User $\rightarrow$ NR AI Concierge UI $\rightarrow$ Gemini API (reasoning) $\rightarrow$ `knowledge.md` (RAG retrieval) $\rightarrow$ Existing Backend Tools/APIs $\rightarrow$ Supabase Database $\rightarrow$ ElevenLabs Server-Side TTS $\rightarrow$ User**.
+- [x] **Knowledge System (`knowledge.md` + Section-Based RAG)**:
+  - Created standardized `knowledge.md` at project root containing authoritative fleet data, rates, rental policies (age, licence, fuel, excess), airport hubs, and FAQs.
+  - Implemented `lib/ai/knowledge-retriever.ts` to parse markdown sections and dynamically inject top relevant chunks into Gemini context per request instead of dumping whole file.
+- [x] **Google Gemini AI Reasoning Engine**:
+  - Enhanced `lib/services/ai-agent-service.ts` with strict anti-hallucination guardrails, grounded fleet lookup, and authoritative tool execution (`ai-agent-tools.ts`).
+  - Strict refusal of non-fleet vehicles, fake discounts, or database modifications.
+- [x] **ElevenLabs Server-Side Text-To-Speech (TTS)**:
+  - Created `app/api/ai/tts/route.ts` using `ELEVENLABS_VOICE_ID` and `ELEVENLABS_API_KEY` to stream `audio/mpeg` to the client.
+  - Zero sensitive API keys exposed in frontend bundles.
+- [x] **Premium NR Car Hire AI Assistant UI**:
+  - Implemented `components/ai/ai-assistant-widget.tsx` with floating trigger button, dual Voice & Text chat modes, audio visualizer orb, speech recognition, formatted vehicle suggestion cards with direct checkout links, price quote cards, and availability badges.
+  - Mounted globally in `app/layout.tsx`.
+- [x] **Files Created & Modified**:
+  - Created: `knowledge.md`, `lib/ai/knowledge-retriever.ts`, `app/api/ai/tts/route.ts`, `components/ai/ai-assistant-widget.tsx`, `tests/unit/ai-assistant-architecture.test.ts`.
+  - Modified: `lib/services/ai-agent-service.ts`, `app/layout.tsx`, `.env.local`, `package.json`, `memory.md`.
+  - Removed: `components/ai/elevenlabs-agent-widget.tsx`, `tests/unit/elevenlabs-agent-integration.test.ts`.
+
 ## Verification Metrics
 
-- Build: PASS (`npm run build` — 47/47 static & dynamic routes compiled)
+- Build: PASS (`npm run build` — 48/48 static & dynamic routes compiled)
 - Lint: PASS (`npx eslint` — 0 errors, 0 warnings across all directories)
 - Type Check: PASS (`npx tsc --noEmit` — 0 errors)
-- Tests: PASS (`npm test` — 25/25 test files, 207/207 unit tests pass)
-- ElevenLabs Integration Suite: PASS (`tests/unit/elevenlabs-agent-integration.test.ts`)
+- Tests: PASS (`npm test` — 25/25 test files, 213/213 unit tests pass)
+- Architecture Suite: PASS (`tests/unit/ai-assistant-architecture.test.ts` — 9/9 tests pass)
 - Dev Server: RUNNING (`next dev` on `http://localhost:3000`)
-- GitHub Sync: Pushed to `origin/main` (commit `c5df64a`)
