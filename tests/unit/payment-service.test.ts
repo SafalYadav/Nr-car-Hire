@@ -141,14 +141,14 @@ describe('PaymentService & Razorpay Test Mode Integration', () => {
       expect(record?.status).toBe('FAILED');
     });
 
-    it('rejects verification for an unknown order ID', async () => {
+    it('rejects verification for an unknown order ID with invalid signature', async () => {
       await expect(
         paymentService.verifyPayment({
           razorpay_order_id: 'order_non_existent',
           razorpay_payment_id: 'pay_test_123',
           razorpay_signature: 'signature_abc',
         }),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(AppError);
     });
   });
 

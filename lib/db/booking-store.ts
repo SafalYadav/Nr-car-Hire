@@ -1,6 +1,46 @@
 import type { BookingStatus, CustomerDetails, BookingQueryParams } from '@/lib/validation/booking';
 import type { PaymentStatus } from '@/lib/validation/payment';
 import type { SelectedExtraItem } from '@/lib/validation/extra';
+import { supabase } from '@/lib/db/supabase';
+import { logger } from '@/lib/utils/logger';
+
+function mapDbRowToBooking(row: Record<string, unknown>): BookingRecord {
+  return {
+    id: String(row.id || ''),
+    bookingNumber: String(row.booking_number || ''),
+    userId: String(row.user_id || ''),
+    vehicleId: String(row.vehicle_id || ''),
+    pickupLocation: String(row.pickup_location || ''),
+    dropoffLocation: String(row.dropoff_location || ''),
+    pickupDate: new Date(String(row.pickup_date || Date.now())),
+    dropoffDate: new Date(String(row.dropoff_date || Date.now())),
+    pickupTime: String(row.pickup_time || '10:00'),
+    returnTime: String(row.return_time || '10:00'),
+    rentalDays: Number(row.rental_days || 1),
+    dailyRate: Number(row.daily_rate || 0),
+    baseAmount: Number(row.base_amount || 0),
+    extrasAmount: Number(row.extras_amount || 0),
+    discountAmount: Number(row.discount_amount || 0),
+    taxAmount: Number(row.tax_amount || 0),
+    finalAmount: Number(row.final_amount || 0),
+    currency: String(row.currency || 'INR'),
+    promoCode: row.promo_code ? String(row.promo_code) : undefined,
+    customerDetails: (row.customer_details as CustomerDetails) || {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+    },
+    extras: (row.extras as SelectedExtraItem[]) || [],
+    status: (row.status as BookingStatus) || 'PENDING',
+    paymentStatus: (row.payment_status as PaymentStatus) || 'PENDING',
+    razorpayOrderId: row.razorpay_order_id ? String(row.razorpay_order_id) : undefined,
+    razorpayPaymentId: row.razorpay_payment_id ? String(row.razorpay_payment_id) : undefined,
+    cancellationReason: row.cancellation_reason ? String(row.cancellation_reason) : undefined,
+    createdAt: new Date(String(row.created_at || Date.now())),
+    updatedAt: new Date(String(row.updated_at || Date.now())),
+  };
+}
 
 export interface BookingRecord {
   id: string;
@@ -180,8 +220,29 @@ class BookingStore {
   }
 
   public async findById(id: string): Promise<BookingRecord | null> {
-    const b = this.bookings.get(id);
-    return b ? { ...b } : null;
+    const mem = this.bookings.get(id);
+    if (mem) return { ...mem };
+
+    try {
+      const timeoutPromise = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 1500),
+      );
+      const queryPromise = supabase.from('bookings').select('*').eq('id', id).maybeSingle();
+      const { data } = (await Promise.race([queryPromise, timeoutPromise])) as {
+        data: Record<string, unknown> | null;
+      };
+      if (data) {
+        const mapped = mapDbRowToBooking(data);
+        this.bookings.set(id, mapped);
+        return { ...mapped };
+      }
+    } catch (err) {
+      logger.warn('Notice querying Supabase bookings by ID:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    return null;
   }
 
   public async findByBookingNumber(bookingNumber: string): Promise<BookingRecord | null> {
@@ -190,6 +251,30 @@ class BookingStore {
         return { ...b };
       }
     }
+
+    try {
+      const timeoutPromise = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 1500),
+      );
+      const queryPromise = supabase
+        .from('bookings')
+        .select('*')
+        .eq('booking_number', bookingNumber.trim().toUpperCase())
+        .maybeSingle();
+      const { data } = (await Promise.race([queryPromise, timeoutPromise])) as {
+        data: Record<string, unknown> | null;
+      };
+      if (data) {
+        const mapped = mapDbRowToBooking(data);
+        this.bookings.set(mapped.id, mapped);
+        return { ...mapped };
+      }
+    } catch (err) {
+      logger.warn('Notice querying Supabase bookings by bookingNumber:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return null;
   }
 
@@ -199,16 +284,67 @@ class BookingStore {
         return { ...b };
       }
     }
+
+    try {
+      const timeoutPromise = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 1500),
+      );
+      const queryPromise = supabase
+        .from('bookings')
+        .select('*')
+        .eq('razorpay_order_id', orderId)
+        .maybeSingle();
+      const { data } = (await Promise.race([queryPromise, timeoutPromise])) as {
+        data: Record<string, unknown> | null;
+      };
+      if (data) {
+        const mapped = mapDbRowToBooking(data);
+        this.bookings.set(mapped.id, mapped);
+        return { ...mapped };
+      }
+    } catch (err) {
+      logger.warn('Notice querying Supabase bookings by razorpayOrderId:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return null;
   }
 
   public async listByUser(userId: string): Promise<BookingRecord[]> {
-    return Array.from(this.bookings.values())
+    const memList = Array.from(this.bookings.values())
       .filter(
         (b) =>
           b.userId === userId || b.customerDetails.email.toLowerCase() === userId.toLowerCase(),
       )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    try {
+      const timeoutPromise = new Promise<{ data: null }>((resolve) =>
+        setTimeout(() => resolve({ data: null }), 1500),
+      );
+      const queryPromise = supabase
+        .from('bookings')
+        .select('*')
+        .or(`user_id.eq.${userId},customer_details->>email.eq.${userId.toLowerCase()}`)
+        .order('created_at', { ascending: false });
+
+      const { data } = (await Promise.race([queryPromise, timeoutPromise])) as {
+        data: Record<string, unknown>[] | null;
+      };
+
+      if (data && data.length > 0) {
+        const dbBookings = data.map(mapDbRowToBooking);
+        dbBookings.forEach((b) => this.bookings.set(b.id, b));
+        return dbBookings;
+      }
+    } catch (err) {
+      logger.warn('Notice querying Supabase bookings for user:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    return memList;
   }
 
   public async listForVehicle(vehicleId: string): Promise<BookingRecord[]> {
@@ -224,7 +360,6 @@ class BookingStore {
   public async listAdmin(params: Partial<BookingQueryParams> = {}): Promise<BookingListResult> {
     let result = Array.from(this.bookings.values());
 
-    // Search by bookingNumber, customer name, email, vehicleId
     if (params.search) {
       const q = params.search.toLowerCase();
       result = result.filter(
@@ -237,22 +372,18 @@ class BookingStore {
       );
     }
 
-    // Status filter
     if (params.status && params.status !== 'ALL') {
       result = result.filter((b) => b.status === params.status);
     }
 
-    // Vehicle filter
     if (params.vehicleId) {
       result = result.filter((b) => b.vehicleId === params.vehicleId);
     }
 
-    // User filter
     if (params.userId) {
       result = result.filter((b) => b.userId === params.userId);
     }
 
-    // Date range filter
     if (params.startDate) {
       result = result.filter((b) => b.pickupDate >= params.startDate!);
     }
@@ -260,7 +391,6 @@ class BookingStore {
       result = result.filter((b) => b.dropoffDate <= params.endDate!);
     }
 
-    // Sort newest first
     result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     const total = result.length;
@@ -296,6 +426,45 @@ class BookingStore {
     };
 
     this.bookings.set(id, newRecord);
+
+    try {
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1500));
+      const dbPromise = supabase.from('bookings').upsert({
+        id,
+        booking_number: bookingNumber,
+        user_id: data.userId,
+        vehicle_id: data.vehicleId,
+        pickup_location: data.pickupLocation,
+        dropoff_location: data.dropoffLocation,
+        pickup_date: data.pickupDate.toISOString(),
+        dropoff_date: data.dropoffDate.toISOString(),
+        pickup_time: data.pickupTime || '10:00',
+        return_time: data.returnTime || '10:00',
+        rental_days: data.rentalDays,
+        daily_rate: data.dailyRate,
+        base_amount: data.baseAmount,
+        extras_amount: data.extrasAmount || 0,
+        discount_amount: data.discountAmount || 0,
+        tax_amount: data.taxAmount || 0,
+        final_amount: data.finalAmount,
+        currency: data.currency || 'INR',
+        promo_code: data.promoCode || null,
+        customer_details: data.customerDetails,
+        extras: data.extras || [],
+        status: data.status || 'PAYMENT_PENDING',
+        payment_status: data.paymentStatus || 'PENDING',
+        razorpay_order_id: data.razorpayOrderId || null,
+        razorpay_payment_id: data.razorpayPaymentId || null,
+        created_at: now.toISOString(),
+        updated_at: now.toISOString(),
+      });
+      await Promise.race([dbPromise, timeoutPromise]);
+    } catch (err) {
+      logger.warn('Notice syncing booking to Supabase:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { ...newRecord };
   }
 
@@ -305,7 +474,10 @@ class BookingStore {
     paymentStatus?: PaymentStatus,
     paymentId?: string,
   ): Promise<BookingRecord | null> {
-    const existing = this.bookings.get(id);
+    let existing = this.bookings.get(id);
+    if (!existing) {
+      existing = (await this.findById(id)) || undefined;
+    }
     if (!existing) return null;
 
     const updated: BookingRecord = {
@@ -317,11 +489,33 @@ class BookingStore {
     };
 
     this.bookings.set(id, updated);
+
+    try {
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1500));
+      const dbPromise = supabase
+        .from('bookings')
+        .update({
+          status,
+          ...(paymentStatus && { payment_status: paymentStatus }),
+          ...(paymentId && { razorpay_payment_id: paymentId }),
+          updated_at: updated.updatedAt.toISOString(),
+        })
+        .eq('id', id);
+      await Promise.race([dbPromise, timeoutPromise]);
+    } catch (err) {
+      logger.warn('Notice updating booking status in Supabase:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { ...updated };
   }
 
   public async cancel(id: string, reason: string): Promise<BookingRecord | null> {
-    const existing = this.bookings.get(id);
+    let existing = this.bookings.get(id);
+    if (!existing) {
+      existing = (await this.findById(id)) || undefined;
+    }
     if (!existing) return null;
 
     const updated: BookingRecord = {
@@ -333,6 +527,24 @@ class BookingStore {
     };
 
     this.bookings.set(id, updated);
+
+    try {
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 1500));
+      const dbPromise = supabase
+        .from('bookings')
+        .update({
+          status: 'CANCELLED',
+          cancellation_reason: reason,
+          updated_at: updated.updatedAt.toISOString(),
+        })
+        .eq('id', id);
+      await Promise.race([dbPromise, timeoutPromise]);
+    } catch (err) {
+      logger.warn('Notice updating booking cancellation in Supabase:', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { ...updated };
   }
 }

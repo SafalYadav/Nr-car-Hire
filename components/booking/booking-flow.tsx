@@ -40,6 +40,7 @@ declare global {
   interface Window {
     Razorpay?: new (options: Record<string, unknown>) => {
       open: () => void;
+      on: (event: string, callback: (response: { error?: { description?: string; reason?: string } }) => void) => void;
     };
   }
 }
@@ -461,6 +462,14 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
         };
 
         const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', (failedResponse: { error?: { description?: string; reason?: string } }) => {
+          const failureReason =
+            failedResponse.error?.description ||
+            failedResponse.error?.reason ||
+            'Payment transaction failed on payment gateway';
+          setPaymentError(failureReason);
+          setIsProcessingPayment(false);
+        });
         rzp.open();
       } else {
         // Fallback for automated test environments
