@@ -16,10 +16,11 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import Link from 'next/link';
+import { ConversationProvider, useConversation } from '@elevenlabs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils/cn';
-import type { ChatResponse, SuggestedVehicle, PriceSummaryCard, AvailabilityCard } from '@/lib/services/ai-agent-service';
+import type { SuggestedVehicle, PriceSummaryCard, AvailabilityCard } from '@/lib/services/ai-agent-service';
 
 interface Message {
   id: string;
@@ -30,339 +31,206 @@ interface Message {
   priceCard?: PriceSummaryCard;
   availabilityCard?: AvailabilityCard;
   quickActions?: string[];
-  audioUrl?: string;
 }
 
-interface BrowserSpeechRecognitionEvent {
-  results: Array<Array<{ transcript: string }>>;
-}
-
-interface BrowserSpeechRecognitionErrorEvent {
-  error: string;
-}
-
-interface BrowserSpeechRecognition {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onstart: (() => void) | null;
-  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null;
-  onerror: ((event: BrowserSpeechRecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-
-const INITIAL_MESSAGE: Message = {
-  id: 'msg-welcome',
-  role: 'assistant',
-  content: 'Hi! Welcome to NR Car Hire. What would you like to have today?',
-  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  quickActions: [
-    'Is Camry available next weekend?',
-    'Show me luxury SUVs',
-    'What is your zero excess policy?',
-    'Airport pickup locations',
-  ],
-};
-
-export function AiAssistantWidget() {
+function AiAssistantWidgetInner() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAudioLoading, setIsAudioLoading] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [initialAgentMessage, setInitialAgentMessage] = useState<string>('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
-  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+
+  // ElevenLabs Official Conversational AI Hook
+  const conversation = useConversation({
+    onConnect: () => {
+      setIsConnecting(false);
+      setErrorMessage(null);
+    },
+    onDisconnect: () => {
+      setIsConnecting(false);
+    },
+    onMessage: (payload: { message: string; source: 'user' | 'ai' }) => {
+      if (!payload.message) return;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === (payload.source === 'ai' ? 'assistant' : 'user') && last.content === payload.message) {
+          return prev;
+        }
+        return [
+          ...prev,
+          {
+            id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            role: payload.source === 'ai' ? 'assistant' : 'user',
+            content: payload.message,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            quickActions: payload.source === 'ai' && prev.length <= 1 ? [
+              'Is Camry available next weekend?',
+              'Show me luxury SUVs',
+              'What is your zero excess policy?',
+              'Airport pickup locations',
+            ] : undefined,
+          },
+        ];
+      });
+    },
+    onError: (error: string | Error) => {
+      console.error('ElevenLabs Agent Error:', error);
+      setIsConnecting(false);
+      const errText = typeof error === 'string' ? error : error?.message || 'ElevenLabs connection error';
+      setErrorMessage(errText);
+    },
+  });
 
   // Auto-scroll chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [messages, isConnecting, conversation.isSpeaking]);
 
-  // Clean text for speech synthesis
-  const cleanSpeechText = (raw: string): string => {
-    return raw
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/[`*#_~]/g, '')
-      .replace(/₹/g, 'dollars ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
-
-  // High-fidelity Browser Speech Synthesis Fallback
-  const speakWithBrowserSpeech = useCallback((textToSpeak: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      setIsAudioLoading(false);
-      setIsPlayingAudio(false);
-      return;
+  // Fetch Agent's configured first message dynamically from ElevenLabs API
+  useEffect(() => {
+    async function loadAgentInitialMessage() {
+      try {
+        const res = await fetch('/api/ai/elevenlabs/signed-url');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.firstMessage) {
+            setInitialAgentMessage(data.firstMessage);
+            setMessages([
+              {
+                id: 'msg-initial',
+                role: 'assistant',
+                content: data.firstMessage,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                quickActions: [
+                  'Is Camry available next weekend?',
+                  'Show me luxury SUVs',
+                  'What is your zero excess policy?',
+                  'Airport pickup locations',
+                ],
+              },
+            ]);
+          }
+        }
+      } catch (e) {
+        console.warn('Could not prefetch agent greeting:', e);
+      }
     }
+    loadAgentInitialMessage();
+  }, []);
+
+  // Connect / Start Live ElevenLabs Realtime Voice Session
+  const startLiveConversation = useCallback(async () => {
+    if (conversation.status === 'connected' || conversation.status === 'connecting') return;
 
     try {
-      window.speechSynthesis.cancel();
-      const clean = cleanSpeechText(textToSpeak);
-      const utterance = new SpeechSynthesisUtterance(clean);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.lang = 'en-AU';
-
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice =
-        voices.find(
-          (v) =>
-            v.lang.includes('en-AU') ||
-            v.lang.includes('en-GB') ||
-            v.name.includes('Natural') ||
-            v.name.includes('Google') ||
-            v.name.includes('Samantha')
-        ) ||
-        voices.find((v) => v.lang.startsWith('en')) ||
-        voices[0];
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-
-      utterance.onstart = () => {
-        setIsPlayingAudio(true);
-        setIsAudioLoading(false);
-      };
-
-      utterance.onend = () => {
-        setIsPlayingAudio(false);
-      };
-
-      utterance.onerror = () => {
-        setIsPlayingAudio(false);
-        setIsAudioLoading(false);
-      };
-
-      window.speechSynthesis.speak(utterance);
-    } catch (err) {
-      console.warn('Browser Speech error:', err);
-      setIsPlayingAudio(false);
-      setIsAudioLoading(false);
-    }
-  }, []);
-
-  // Text-To-Speech playback (ElevenLabs Primary with instant Browser Speech Fallback)
-  const playResponseAudio = useCallback(
-    async (textToSpeak: string) => {
-      if (isMuted) return;
-
-      try {
-        setIsAudioLoading(true);
-        if (audioPlayerRef.current) {
-          audioPlayerRef.current.pause();
-          audioPlayerRef.current = null;
-        }
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-        }
-
-        const res = await fetch('/api/ai/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: textToSpeak }),
-        });
-
-        if (!res.ok) {
-          // ElevenLabs quota exceeded or unavailable -> Seamless fallback to browser speech
-          speakWithBrowserSpeech(textToSpeak);
-          return;
-        }
-
-        const audioBlob = await res.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audioPlayerRef.current = audio;
-
-        audio.onplay = () => {
-          setIsPlayingAudio(true);
-          setIsAudioLoading(false);
-        };
-
-        audio.onended = () => {
-          setIsPlayingAudio(false);
-          URL.revokeObjectURL(audioUrl);
-        };
-
-        audio.onerror = () => {
-          speakWithBrowserSpeech(textToSpeak);
-        };
-
-        await audio.play();
-      } catch (err) {
-        console.warn('TTS playback network note, falling back to browser speech:', err);
-        speakWithBrowserSpeech(textToSpeak);
-      }
-    },
-    [isMuted, speakWithBrowserSpeech]
-  );
-
-  const handleSendMessage = useCallback(
-    async (textToSend?: string) => {
-      const query = (textToSend || inputText).trim();
-      if (!query || isLoading) return;
-
-      setInputText('');
+      setIsConnecting(true);
       setErrorMessage(null);
 
-      const userMessage: Message = {
-        id: `usr-${Date.now()}`,
-        role: 'user',
-        content: query,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
+      // Request browser microphone access
+      await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
+      // Fetch signed WebSocket URL from secure backend endpoint
+      const res = await fetch('/api/ai/elevenlabs/signed-url');
+      const data = await res.json();
+
+      if (!data.success || !data.signedUrl) {
+        throw new Error(data.error || 'Failed to retrieve ElevenLabs signed URL from server');
+      }
+
+      await conversation.startSession({
+        signedUrl: data.signedUrl,
+      });
+    } catch (err: unknown) {
+      setIsConnecting(false);
+      const msg = err instanceof Error ? err.message : 'Microphone access or connection failed';
+      setErrorMessage(msg);
+    }
+  }, [conversation]);
+
+  // Disconnect Live Session
+  const endLiveConversation = useCallback(async () => {
+    try {
+      await conversation.endSession();
+    } catch (e) {
+      console.warn('Session end note:', e);
+    }
+  }, [conversation]);
+
+  // Handle user send message (Text or Quick Action)
+  const handleSendMessage = async (textToSend?: string) => {
+    const query = (textToSend || inputText).trim();
+    if (!query) return;
+
+    setInputText('');
+    setErrorMessage(null);
+
+    // If connected to ElevenLabs live session, send directly through client
+    if (conversation.status === 'connected') {
+      try {
+        conversation.sendUserMessage(query);
+      } catch (e) {
+        console.warn('Error sending user message to ElevenLabs:', e);
+      }
+    } else {
+      // Add message to UI and trigger live connection
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `usr-${Date.now()}`,
+          role: 'user',
+          content: query,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
 
       try {
-        const historyPayload = [...messages, userMessage].map((m) => ({
-          role: m.role === 'user' ? 'user' : 'assistant',
-          content: m.content,
-        }));
-
-        const res = await fetch('/api/ai/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: historyPayload }),
-        });
-
-        const json = await res.json();
-
-        if (!json.success || !json.data) {
-          throw new Error(json.error || 'Failed to get response from AI Concierge');
-        }
-
-        const chatData: ChatResponse = json.data;
-
-        const assistantMessage: Message = {
-          id: `ast-${Date.now()}`,
-          role: 'assistant',
-          content: chatData.message,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          suggestedVehicles: chatData.suggestedVehicles,
-          priceCard: chatData.priceCard,
-          availabilityCard: chatData.availabilityCard,
-          quickActions: chatData.quickActions,
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
-        setIsLoading(false);
-
-        // Speak response if voice mode is active or user unmuted
-        if (isVoiceMode || !isMuted) {
-          playResponseAudio(chatData.message);
-        }
-      } catch (err: unknown) {
-        setIsLoading(false);
-        const errMsg = err instanceof Error ? err.message : 'Connection failed. Please try again.';
-        setErrorMessage(errMsg);
-      }
-    },
-    [inputText, isLoading, isMuted, isVoiceMode, messages, playResponseAudio]
-  );
-
-  // Initialize Speech Recognition if supported in browser
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognitionConstructor =
-        (window as unknown as { SpeechRecognition?: new () => BrowserSpeechRecognition }).SpeechRecognition ||
-        (window as unknown as { webkitSpeechRecognition?: new () => BrowserSpeechRecognition }).webkitSpeechRecognition;
-
-      if (SpeechRecognitionConstructor) {
-        const recognition = new SpeechRecognitionConstructor();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-AU';
-
-        recognition.onstart = () => {
-          setIsListening(true);
-          setErrorMessage(null);
-        };
-
-        recognition.onresult = (event: BrowserSpeechRecognitionEvent) => {
-          const transcript = event.results[0]?.[0]?.transcript;
-          if (transcript) {
-            setInputText(transcript);
-            handleSendMessage(transcript);
-          }
-        };
-
-        recognition.onerror = (event: BrowserSpeechRecognitionErrorEvent) => {
-          console.warn('Speech recognition error:', event.error);
-          setIsListening(false);
-          if (event.error === 'not-allowed') {
-            setErrorMessage('Microphone access was denied. Please allow microphone permissions.');
-          }
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognitionRef.current = recognition;
-      }
-    }
-  }, [handleSendMessage]);
-
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-    } else {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.start();
-        } catch (e) {
-          console.warn('Speech recognition start note:', e);
-        }
-      } else {
-        setErrorMessage('Speech recognition is not supported in this browser. Please type your message.');
+        await startLiveConversation();
+      } catch (e) {
+        console.warn('Connection trigger note:', e);
       }
     }
   };
-
-  const stopAudio = useCallback(() => {
-    if (audioPlayerRef.current) {
-      audioPlayerRef.current.pause();
-      audioPlayerRef.current = null;
-    }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    setIsPlayingAudio(false);
-    setIsAudioLoading(false);
-  }, []);
 
   const handleOpenToggle = () => {
     setIsOpen((prev) => {
       const next = !prev;
-      if (next && messages.length === 1 && !isMuted) {
-        // Speak initial welcome greeting when user opens widget
-        playResponseAudio(INITIAL_MESSAGE.content);
-      }
-      if (!next) {
-        stopAudio();
+      if (!next && conversation.status === 'connected') {
+        endLiveConversation();
       }
       return next;
     });
   };
 
   const resetChat = () => {
-    stopAudio();
-    setMessages([INITIAL_MESSAGE]);
+    if (conversation.status === 'connected') {
+      endLiveConversation();
+    }
+    if (initialAgentMessage) {
+      setMessages([
+        {
+          id: 'msg-initial',
+          role: 'assistant',
+          content: initialAgentMessage,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          quickActions: [
+            'Is Camry available next weekend?',
+            'Show me luxury SUVs',
+            'What is your zero excess policy?',
+            'Airport pickup locations',
+          ],
+        },
+      ]);
+    } else {
+      setMessages([]);
+    }
     setErrorMessage(null);
   };
+
+  const isLiveConnected = conversation.status === 'connected';
+  const isSpeaking = conversation.isSpeaking;
 
   return (
     <>
@@ -394,18 +262,20 @@ export function AiAssistantWidget() {
           aria-label="Open NR Concierge AI Assistant"
           className={cn(
             'group relative flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-gold/30',
-            isPlayingAudio
+            isSpeaking
               ? 'bg-linear-to-br from-gold via-amber-600 to-midnight text-midnight border-2 border-gold'
+              : isLiveConnected
+              ? 'bg-linear-to-br from-emerald-500 to-midnight text-white border-2 border-emerald-400'
               : 'bg-linear-to-br from-midnight via-slate-900 to-midnight text-gold border-2 border-gold/60 hover:border-gold'
           )}
         >
-          {isPlayingAudio && (
+          {isSpeaking && (
             <span className="absolute inset-0 rounded-full animate-ping bg-gold/30 duration-1000" />
           )}
 
           {isOpen ? (
             <X className="h-6 w-6 text-white transition-transform group-hover:rotate-90" />
-          ) : isPlayingAudio ? (
+          ) : isSpeaking ? (
             <Volume2 className="h-6 w-6 text-midnight animate-bounce" />
           ) : (
             <div className="relative flex items-center justify-center">
@@ -451,51 +321,39 @@ export function AiAssistantWidget() {
                     <span
                       className={cn(
                         'inline-block h-1.5 w-1.5 rounded-full',
-                        isPlayingAudio
+                        isSpeaking
                           ? 'bg-amber-400 animate-pulse'
-                          : isListening
+                          : isLiveConnected
                           ? 'bg-emerald-400 animate-pulse'
                           : 'bg-emerald-500'
                       )}
                     />
-                    {isPlayingAudio
-                      ? 'AI Speaking...'
-                      : isListening
-                      ? 'Listening to you...'
-                      : 'Authoritative Fleet AI Online'}
+                    {isSpeaking
+                      ? 'AI Speaking (Sia)...'
+                      : isLiveConnected
+                      ? 'Live Voice Session Active'
+                      : isConnecting
+                      ? 'Connecting to ElevenLabs...'
+                      : 'Authoritative Fleet Agent'}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-1">
-                {/* Voice / Text Mode Toggle */}
+                {/* Voice Session Toggle Button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsVoiceMode((prev) => !prev);
-                    if (isPlayingAudio) stopAudio();
-                  }}
+                  onClick={isLiveConnected ? endLiveConversation : startLiveConversation}
                   className={cn(
-                    'rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all border',
-                    isVoiceMode
-                      ? 'bg-gold text-midnight border-gold'
-                      : 'bg-white/5 text-gray-300 border-white/10 hover:text-white'
+                    'rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all border flex items-center gap-1',
+                    isLiveConnected
+                      ? 'bg-emerald-500 text-white border-emerald-400'
+                      : 'bg-white/5 text-gray-300 border-white/10 hover:text-white hover:border-gold/40'
                   )}
-                  title="Toggle Voice Mode"
+                  title={isLiveConnected ? 'End Voice Session' : 'Start Realtime Voice Session'}
                 >
-                  {isVoiceMode ? 'Voice Mode' : 'Chat Mode'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isPlayingAudio) stopAudio();
-                    setIsMuted((prev) => !prev);
-                  }}
-                  className="rounded-full p-1.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
-                  aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-                >
-                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                  {isLiveConnected ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
+                  <span>{isLiveConnected ? 'Live Voice On' : 'Start Voice'}</span>
                 </button>
 
                 <button
@@ -510,10 +368,7 @@ export function AiAssistantWidget() {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    stopAudio();
-                    setIsOpen(false);
-                  }}
+                  onClick={() => setIsOpen(false)}
                   className="rounded-full p-1.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                   aria-label="Minimize Assistant"
                 >
@@ -523,19 +378,17 @@ export function AiAssistantWidget() {
             </div>
 
             {/* Voice Mode Visualizer Screen */}
-            {isVoiceMode && (
-              <div className="flex flex-col items-center justify-center p-6 bg-linear-to-b from-white/5 via-gold/5 to-transparent border-b border-white/10">
+            {isLiveConnected && (
+              <div className="flex flex-col items-center justify-center p-5 bg-linear-to-b from-white/5 via-gold/5 to-transparent border-b border-white/10">
                 <div
                   className={cn(
-                    'relative flex h-24 w-24 items-center justify-center rounded-full transition-all duration-500',
-                    isPlayingAudio
+                    'relative flex h-20 w-20 items-center justify-center rounded-full transition-all duration-500',
+                    isSpeaking
                       ? 'shadow-[0_0_40px_rgba(197,168,128,0.5)] border border-gold'
-                      : isListening
-                      ? 'shadow-[0_0_40px_rgba(16,185,129,0.4)] border border-emerald-400'
-                      : 'border border-white/20 shadow-inner'
+                      : 'shadow-[0_0_40px_rgba(16,185,129,0.4)] border border-emerald-400'
                   )}
                 >
-                  {isPlayingAudio && (
+                  {isSpeaking && (
                     <motion.div
                       animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0.1, 0.6] }}
                       transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
@@ -545,34 +398,28 @@ export function AiAssistantWidget() {
 
                   <div
                     className={cn(
-                      'flex h-16 w-16 items-center justify-center rounded-full transition-all',
-                      isPlayingAudio
+                      'flex h-14 w-14 items-center justify-center rounded-full transition-all',
+                      isSpeaking
                         ? 'bg-linear-to-br from-gold to-amber-600 text-midnight scale-105'
-                        : isListening
-                        ? 'bg-linear-to-br from-emerald-400 to-teal-600 text-white'
-                        : 'bg-white/10 text-gold'
+                        : 'bg-linear-to-br from-emerald-400 to-teal-600 text-white'
                     )}
                   >
-                    {isPlayingAudio ? (
-                      <Volume2 className="h-8 w-8 animate-bounce text-midnight" />
-                    ) : isListening ? (
-                      <Mic className="h-8 w-8 animate-pulse text-white" />
+                    {isSpeaking ? (
+                      <Volume2 className="h-7 w-7 animate-bounce text-midnight" />
                     ) : (
-                      <Sparkles className="h-7 w-7 text-gold" />
+                      <Mic className="h-7 w-7 animate-pulse text-white" />
                     )}
                   </div>
                 </div>
 
-                <div className="mt-3 text-center">
+                <div className="mt-2.5 text-center">
                   <p className="text-xs font-semibold text-gold">
-                    {isPlayingAudio
-                      ? 'AI Concierge Speaking...'
-                      : isListening
-                      ? 'Listening... Speak your car inquiry'
-                      : 'Tap microphone to speak'}
+                    {isSpeaking
+                      ? 'ElevenLabs Agent Speaking (Sia)...'
+                      : 'Listening... Speak naturally anytime'}
                   </p>
-                  <p className="text-[11px] text-gray-300 mt-0.5">
-                    Real-time knowledge retrieval from knowledge.md
+                  <p className="text-[10px] text-gray-400 mt-0.5">
+                    Persistent real-time microphone session • No restart required
                   </p>
                 </div>
               </div>
@@ -658,8 +505,8 @@ export function AiAssistantWidget() {
                           />
                           <span className={msg.availabilityCard.isAvailable ? 'text-emerald-400' : 'text-red-300'}>
                             {msg.availabilityCard.isAvailable
-                              ? 'Authoritative Live: Available'
-                              : 'Authoritative Live: Unavailable'}
+                              ? 'Live Availability: Available'
+                              : 'Live Availability: Unavailable'}
                           </span>
                         </div>
                         <p className="text-gray-300 mt-1">
@@ -730,17 +577,10 @@ export function AiAssistantWidget() {
                 </div>
               ))}
 
-              {isLoading && (
-                <div className="flex items-center gap-2 text-gray-400 text-xs py-2">
+              {isConnecting && (
+                <div className="flex items-center gap-2 text-gold text-xs py-2">
                   <Loader2 className="h-4 w-4 animate-spin text-gold" />
-                  <span>NR Concierge is checking live fleet...</span>
-                </div>
-              )}
-
-              {isAudioLoading && (
-                <div className="flex items-center gap-2 text-gold text-xs py-1">
-                  <Volume2 className="h-4 w-4 animate-pulse" />
-                  <span>Speaking voice audio...</span>
+                  <span>Connecting to ElevenLabs Conversational AI Agent...</span>
                 </div>
               )}
 
@@ -758,24 +598,23 @@ export function AiAssistantWidget() {
               >
                 <button
                   type="button"
-                  onClick={toggleListening}
+                  onClick={isLiveConnected ? endLiveConversation : startLiveConversation}
                   className={cn(
                     'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all',
-                    isListening
+                    isLiveConnected
                       ? 'bg-emerald-500 border-emerald-400 text-white animate-pulse'
                       : 'bg-white/10 border-white/15 text-gold hover:bg-white/20'
                   )}
-                  title={isListening ? 'Stop Listening' : 'Voice Input (Speak)'}
+                  title={isLiveConnected ? 'Stop Live Voice' : 'Start Live Voice Session'}
                   aria-label="Microphone"
                 >
-                  {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  {isLiveConnected ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 </button>
 
                 <Input
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Ask about cars, prices, airport hubs, or booking..."
-                  disabled={isLoading}
                   className="flex-1 bg-white/10 border-white/15 text-white placeholder:text-gray-400 text-xs rounded-2xl h-10 focus-visible:ring-gold/50"
                 />
 
@@ -783,7 +622,7 @@ export function AiAssistantWidget() {
                   type="submit"
                   variant="gold"
                   size="icon"
-                  disabled={!inputText.trim() || isLoading}
+                  disabled={!inputText.trim()}
                   className="h-10 w-10 shrink-0 rounded-2xl shadow-md shadow-gold/20"
                   aria-label="Send Message"
                 >
@@ -795,5 +634,13 @@ export function AiAssistantWidget() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+export function AiAssistantWidget() {
+  return (
+    <ConversationProvider>
+      <AiAssistantWidgetInner />
+    </ConversationProvider>
   );
 }

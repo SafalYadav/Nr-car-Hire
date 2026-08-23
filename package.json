@@ -12,6 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@elevenlabs/react": "^1.13.0",
     "@hookform/resolvers": "^5.9.1",
     "@supabase/supabase-js": "^2.112.0",
     "class-variance-authority": "^0.7.1",

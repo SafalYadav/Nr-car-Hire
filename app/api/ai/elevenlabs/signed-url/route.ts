@@ -54,10 +54,37 @@ async function handleSignedUrlRequest() {
     }
 
     const data = await response.json();
+
+    // Optionally fetch agent first message from ElevenLabs Agent API
+    let firstMessage = "Hello! Welcome to NR Car Hire. 👋\nI'm your AI car rental assistant. I can help you find the right vehicle, check availability, calculate pricing, and guide you through the booking process.\nHow can I help you today?";
+    let voiceId = 'oO7sLA3dWfQXsKeSAjpA';
+
+    try {
+      const agentRes = await fetch(`https://api.elevenlabs.io/v1/convai/agents/${agentId}`, {
+        headers: { 'xi-api-key': apiKey },
+        next: { revalidate: 300 },
+      });
+      if (agentRes.ok) {
+        const agentData = await agentRes.json();
+        if (agentData.conversation_config?.agent?.first_message) {
+          firstMessage = agentData.conversation_config.agent.first_message;
+        }
+        if (agentData.conversation_config?.tts?.voice_id) {
+          voiceId = agentData.conversation_config.tts.voice_id;
+        }
+      }
+    } catch (agentErr) {
+      logger.debug('Could not fetch agent metadata from ElevenLabs, using cached agent defaults', {
+        error: agentErr instanceof Error ? agentErr.message : String(agentErr),
+      });
+    }
+
     return NextResponse.json({
       success: true,
       signedUrl: data.signed_url,
       agentId,
+      firstMessage,
+      voiceId,
     });
   } catch (err: unknown) {
     logger.error('Unhandled error in /api/ai/elevenlabs/signed-url:', err);

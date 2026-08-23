@@ -165,26 +165,16 @@ The six mandatory source-of-truth files are:
     - Updated `verifyPayment` to dynamically upsert missing payment records upon valid HMAC-SHA256 signature verification rather than prematurely failing with 404.
     - Added `rzp.on('payment.failed')` error listener in `components/booking/booking-flow.tsx` to surface exact gateway error descriptions to the user.
 
-### Priority 6: ElevenLabs AI Agent Architecture (ElevenLabs Agent + knowledge.md RAG + Voice)
-- [x] **Architecture Transformation**:
-  - Migrated from legacy Gemini chatbot to **ElevenLabs AI Agent**.
-  - Completely uninstalled `@google/genai` and purged all Gemini API calls and environment variables.
-  - Implemented secure backend signed-url API route (`app/api/ai/elevenlabs/signed-url/route.ts`) for ElevenLabs Agent WebSocket connection.
-  - Implemented server-side ElevenLabs streaming TTS (`app/api/ai/tts/route.ts`) with new API key `54b3c128...` and voice/agent ID `oO7sLA3dWfQXsKeSAjpA`.
-- [x] **Knowledge System (`knowledge.md` + Section-Based RAG)**:
-  - Authoritative `knowledge.md` at project root containing fleet specs, rates, rental policies (age, licence, fuel, excess), airport hubs, and FAQs.
-  - `lib/ai/knowledge-retriever.ts` dynamically retrieves relevant chunks per inquiry.
-- [x] **Human-Like Stateful Conversation & Recommender Engine**:
-  - `lib/ai/conversation-manager.ts`: Stateful multi-turn memory tracking dates, locations, passengers, budget, and unavailable/rejected vehicle exclusions.
-  - `lib/ai/smart-recommender.ts`: Strict fleet recommendation engine verifying live availability via `inventoryService`.
-  - Supports English, Hindi, Hinglish, and Gujarati fluidly without context loss across turns.
-- [x] **Premium NR Car Hire AI Assistant UI**:
-  - `components/ai/ai-assistant-widget.tsx` with ElevenLabs AI Agent badge, floating trigger, dual Voice & Text chat modes, audio visualizer orb, SpeechSynthesis fallback, vehicle cards with direct checkout links, price quote cards, and availability badges.
-  - Mounted globally in `app/layout.tsx`.
-- [x] **Files Created & Modified**:
-  - Created: `app/api/ai/elevenlabs/signed-url/route.ts`, `lib/ai/conversation-manager.ts`, `lib/ai/smart-recommender.ts`, `tests/unit/conversation-manager.test.ts`.
-  - Modified: `lib/services/ai-agent-service.ts`, `components/ai/ai-assistant-widget.tsx`, `package.json`, `.env.local`, `tests/unit/ai-assistant-architecture.test.ts`.
-  - Cleaned: Uninstalled `@google/genai`, purged `GEMINI_API_KEY`.
+### Priority 6: Official ElevenLabs Conversational AI Agent Integration
+- [x] **Full ElevenLabs Conversational Agent Architecture**:
+  - Integrated official `@elevenlabs/react` (`ConversationProvider`, `useConversation`) with persistent real-time WebSocket connection.
+  - Dynamically retrieves agent's first message and voice (`oO7sLA3dWfQXsKeSAjpA` - Sia) directly from ElevenLabs dashboard.
+  - Removed all old hardcoded greetings and local speech synthesis fallbacks.
+  - Persistent microphone session with natural turn-taking and real-time voice streaming.
+  - Server-side signed URL authentication via `/api/ai/elevenlabs/signed-url` protecting all secret keys.
+- [x] **Preserved UI & Systems**:
+  - Maintained premium luxury UI design, vehicle cards with direct checkout links, price quote cards, and availability badges.
+  - Maintained all Supabase DB & Auth, Vehicle APIs, and Razorpay integrations.
 
 ### Priority 7: Premium Cinematic Hero Background Video
 - [x] **Cinematic Video Integration**:
