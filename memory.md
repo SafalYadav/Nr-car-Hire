@@ -152,6 +152,19 @@ The six mandatory source-of-truth files are:
 - [x] **Testing & Verification**:
   - Added unit test suite `tests/unit/elevenlabs-agent-integration.test.ts`.
 
+### Priority 5: Razorpay Payment Gateway & Vercel Serverless Isolation Fix
+- [x] **Root Cause Diagnosis**:
+  - On localhost, Next.js runs in a single Node process where in-memory Maps (`paymentStore`, `bookingStore`) persist across requests.
+  - On Vercel Serverless, `POST /api/bookings` and `POST /api/payments/verify` execute in separate isolated Lambda instances.
+  - When `verifyPayment` ran, `paymentStore.findByOrderId(razorpay_order_id)` returned `null`, throwing `NotFoundError` and failing the checkout.
+- [x] **Database Persistence & Serverless Resilience**:
+  - Upgraded `lib/db/payment-store.ts` to persist all payment transactions to Supabase `public.payments` table and query Supabase if memory cache misses.
+  - Upgraded `lib/db/booking-store.ts` to persist all reservations to Supabase `public.bookings` table and query Supabase if memory cache misses.
+  - Upgraded `lib/services/payment-service.ts`:
+    - Sanitized and trimmed `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` to strip any stray quotes or whitespace.
+    - Updated `verifyPayment` to dynamically upsert missing payment records upon valid HMAC-SHA256 signature verification rather than prematurely failing with 404.
+    - Added `rzp.on('payment.failed')` error listener in `components/booking/booking-flow.tsx` to surface exact gateway error descriptions to the user.
+
 ## Verification Metrics
 
 - Build: PASS (`npm run build` — 47/47 static & dynamic routes compiled)
@@ -160,3 +173,4 @@ The six mandatory source-of-truth files are:
 - Tests: PASS (`npm test` — 25/25 test files, 207/207 unit tests pass)
 - ElevenLabs Integration Suite: PASS (`tests/unit/elevenlabs-agent-integration.test.ts`)
 - Dev Server: RUNNING (`next dev` on `http://localhost:3000`)
+- GitHub Sync: Pushed to `origin/main` (commit `c5df64a`)
