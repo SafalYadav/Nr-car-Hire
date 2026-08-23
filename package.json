@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
@@ -12,7 +12,6 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@google/genai": "^2.18.0",
     "@hookform/resolvers": "^5.9.1",
     "@supabase/supabase-js": "^2.112.0",
     "class-variance-authority": "^0.7.1",

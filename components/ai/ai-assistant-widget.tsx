@@ -56,8 +56,7 @@ interface BrowserSpeechRecognition {
 const INITIAL_MESSAGE: Message = {
   id: 'msg-welcome',
   role: 'assistant',
-  content:
-    "Hello! I'm NR Concierge, your luxury AI assistant for NR Car Hire Australia. How can I help you today with our fleet, live availability, rental rates, or airport hubs?",
+  content: 'Hi! Welcome to NR Car Hire. What would you like to have today?',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   quickActions: [
     'Is Camry available next weekend?',
@@ -88,55 +87,126 @@ export function AiAssistantWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Text-To-Speech playback using ElevenLabs server-side route
-  const playResponseAudio = useCallback(async (textToSpeak: string) => {
-    if (isMuted) return;
+  // Clean text for speech synthesis
+  const cleanSpeechText = (raw: string): string => {
+    return raw
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[`*#_~]/g, '')
+      .replace(/₹/g, 'dollars ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  // High-fidelity Browser Speech Synthesis Fallback
+  const speakWithBrowserSpeech = useCallback((textToSpeak: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      setIsAudioLoading(false);
+      setIsPlayingAudio(false);
+      return;
+    }
 
     try {
-      setIsAudioLoading(true);
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.pause();
-        audioPlayerRef.current = null;
+      window.speechSynthesis.cancel();
+      const clean = cleanSpeechText(textToSpeak);
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.lang = 'en-AU';
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice =
+        voices.find(
+          (v) =>
+            v.lang.includes('en-AU') ||
+            v.lang.includes('en-GB') ||
+            v.name.includes('Natural') ||
+            v.name.includes('Google') ||
+            v.name.includes('Samantha')
+        ) ||
+        voices.find((v) => v.lang.startsWith('en')) ||
+        voices[0];
+
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
       }
 
-      const res = await fetch('/api/ai/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToSpeak }),
-      });
-
-      if (!res.ok) {
-        setIsAudioLoading(false);
-        return;
-      }
-
-      const audioBlob = await res.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audioPlayerRef.current = audio;
-
-      audio.onplay = () => {
+      utterance.onstart = () => {
         setIsPlayingAudio(true);
         setIsAudioLoading(false);
       };
 
-      audio.onended = () => {
+      utterance.onend = () => {
         setIsPlayingAudio(false);
-        URL.revokeObjectURL(audioUrl);
       };
 
-      audio.onerror = () => {
+      utterance.onerror = () => {
         setIsPlayingAudio(false);
         setIsAudioLoading(false);
       };
 
-      await audio.play();
+      window.speechSynthesis.speak(utterance);
     } catch (err) {
-      console.warn('TTS playback note:', err);
-      setIsAudioLoading(false);
+      console.warn('Browser Speech error:', err);
       setIsPlayingAudio(false);
+      setIsAudioLoading(false);
     }
-  }, [isMuted]);
+  }, []);
+
+  // Text-To-Speech playback (ElevenLabs Primary with instant Browser Speech Fallback)
+  const playResponseAudio = useCallback(
+    async (textToSpeak: string) => {
+      if (isMuted) return;
+
+      try {
+        setIsAudioLoading(true);
+        if (audioPlayerRef.current) {
+          audioPlayerRef.current.pause();
+          audioPlayerRef.current = null;
+        }
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+
+        const res = await fetch('/api/ai/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: textToSpeak }),
+        });
+
+        if (!res.ok) {
+          // ElevenLabs quota exceeded or unavailable -> Seamless fallback to browser speech
+          speakWithBrowserSpeech(textToSpeak);
+          return;
+        }
+
+        const audioBlob = await res.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audioPlayerRef.current = audio;
+
+        audio.onplay = () => {
+          setIsPlayingAudio(true);
+          setIsAudioLoading(false);
+        };
+
+        audio.onended = () => {
+          setIsPlayingAudio(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        audio.onerror = () => {
+          speakWithBrowserSpeech(textToSpeak);
+        };
+
+        await audio.play();
+      } catch (err) {
+        console.warn('TTS playback network note, falling back to browser speech:', err);
+        speakWithBrowserSpeech(textToSpeak);
+      }
+    },
+    [isMuted, speakWithBrowserSpeech]
+  );
 
   const handleSendMessage = useCallback(
     async (textToSend?: string) => {
@@ -262,13 +332,30 @@ export function AiAssistantWidget() {
     }
   };
 
-  const stopAudio = () => {
+  const stopAudio = useCallback(() => {
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause();
       audioPlayerRef.current = null;
-      setIsPlayingAudio(false);
-      setIsAudioLoading(false);
     }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsPlayingAudio(false);
+    setIsAudioLoading(false);
+  }, []);
+
+  const handleOpenToggle = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next && messages.length === 1 && !isMuted) {
+        // Speak initial welcome greeting when user opens widget
+        playResponseAudio(INITIAL_MESSAGE.content);
+      }
+      if (!next) {
+        stopAudio();
+      }
+      return next;
+    });
   };
 
   const resetChat = () => {
@@ -300,7 +387,7 @@ export function AiAssistantWidget() {
         )}
 
         <motion.button
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={handleOpenToggle}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           aria-expanded={isOpen}
@@ -357,7 +444,7 @@ export function AiAssistantWidget() {
                       NR Concierge
                     </h3>
                     <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold border border-gold/30 uppercase tracking-wider">
-                      Gemini + Voice
+                      ElevenLabs AI Agent
                     </span>
                   </div>
                   <p className="text-[11px] text-gray-300 flex items-center gap-1.5">
@@ -423,7 +510,10 @@ export function AiAssistantWidget() {
 
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    stopAudio();
+                    setIsOpen(false);
+                  }}
                   className="rounded-full p-1.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                   aria-label="Minimize Assistant"
                 >
@@ -476,7 +566,7 @@ export function AiAssistantWidget() {
                 <div className="mt-3 text-center">
                   <p className="text-xs font-semibold text-gold">
                     {isPlayingAudio
-                      ? 'AI Concierge Speaking (ElevenLabs TTS)'
+                      ? 'AI Concierge Speaking...'
                       : isListening
                       ? 'Listening... Speak your car inquiry'
                       : 'Tap microphone to speak'}
@@ -643,14 +733,14 @@ export function AiAssistantWidget() {
               {isLoading && (
                 <div className="flex items-center gap-2 text-gray-400 text-xs py-2">
                   <Loader2 className="h-4 w-4 animate-spin text-gold" />
-                  <span>NR Concierge is reasoning with Gemini...</span>
+                  <span>NR Concierge is checking live fleet...</span>
                 </div>
               )}
 
               {isAudioLoading && (
                 <div className="flex items-center gap-2 text-gold text-xs py-1">
                   <Volume2 className="h-4 w-4 animate-pulse" />
-                  <span>Synthesizing voice audio via ElevenLabs...</span>
+                  <span>Speaking voice audio...</span>
                 </div>
               )}
 

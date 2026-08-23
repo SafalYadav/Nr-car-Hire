@@ -165,32 +165,31 @@ The six mandatory source-of-truth files are:
     - Updated `verifyPayment` to dynamically upsert missing payment records upon valid HMAC-SHA256 signature verification rather than prematurely failing with 404.
     - Added `rzp.on('payment.failed')` error listener in `components/booking/booking-flow.tsx` to surface exact gateway error descriptions to the user.
 
-### Priority 6: In-House AI Assistant Architecture (Gemini + knowledge.md RAG + ElevenLabs TTS)
+### Priority 6: ElevenLabs AI Agent Architecture (ElevenLabs Agent + knowledge.md RAG + Voice)
 - [x] **Architecture Transformation**:
-  - Removed client-side ElevenLabs Conversational Agent SDK (`@elevenlabs/react`) and obsolete widget.
-  - Implemented custom in-house AI architecture: **User $\rightarrow$ NR AI Concierge UI $\rightarrow$ Gemini API (reasoning) $\rightarrow$ `knowledge.md` (RAG retrieval) $\rightarrow$ Existing Backend Tools/APIs $\rightarrow$ Supabase Database $\rightarrow$ ElevenLabs Server-Side TTS $\rightarrow$ User**.
+  - Migrated from legacy Gemini chatbot to **ElevenLabs AI Agent**.
+  - Completely uninstalled `@google/genai` and purged all Gemini API calls and environment variables.
+  - Implemented secure backend signed-url API route (`app/api/ai/elevenlabs/signed-url/route.ts`) for ElevenLabs Agent WebSocket connection.
+  - Implemented server-side ElevenLabs streaming TTS (`app/api/ai/tts/route.ts`) with new API key `54b3c128...` and voice/agent ID `oO7sLA3dWfQXsKeSAjpA`.
 - [x] **Knowledge System (`knowledge.md` + Section-Based RAG)**:
-  - Created standardized `knowledge.md` at project root containing authoritative fleet data, rates, rental policies (age, licence, fuel, excess), airport hubs, and FAQs.
-  - Implemented `lib/ai/knowledge-retriever.ts` to parse markdown sections and dynamically inject top relevant chunks into Gemini context per request instead of dumping whole file.
-- [x] **Google Gemini AI Reasoning Engine**:
-  - Enhanced `lib/services/ai-agent-service.ts` with strict anti-hallucination guardrails, grounded fleet lookup, and authoritative tool execution (`ai-agent-tools.ts`).
-  - Strict refusal of non-fleet vehicles, fake discounts, or database modifications.
-- [x] **ElevenLabs Server-Side Text-To-Speech (TTS)**:
-  - Created `app/api/ai/tts/route.ts` using `ELEVENLABS_VOICE_ID` and `ELEVENLABS_API_KEY` to stream `audio/mpeg` to the client.
-  - Zero sensitive API keys exposed in frontend bundles.
+  - Authoritative `knowledge.md` at project root containing fleet specs, rates, rental policies (age, licence, fuel, excess), airport hubs, and FAQs.
+  - `lib/ai/knowledge-retriever.ts` dynamically retrieves relevant chunks per inquiry.
+- [x] **Human-Like Stateful Conversation & Recommender Engine**:
+  - `lib/ai/conversation-manager.ts`: Stateful multi-turn memory tracking dates, locations, passengers, budget, and unavailable/rejected vehicle exclusions.
+  - `lib/ai/smart-recommender.ts`: Strict fleet recommendation engine verifying live availability via `inventoryService`.
+  - Supports English, Hindi, Hinglish, and Gujarati fluidly without context loss across turns.
 - [x] **Premium NR Car Hire AI Assistant UI**:
-  - Implemented `components/ai/ai-assistant-widget.tsx` with floating trigger button, dual Voice & Text chat modes, audio visualizer orb, speech recognition, formatted vehicle suggestion cards with direct checkout links, price quote cards, and availability badges.
+  - `components/ai/ai-assistant-widget.tsx` with ElevenLabs AI Agent badge, floating trigger, dual Voice & Text chat modes, audio visualizer orb, SpeechSynthesis fallback, vehicle cards with direct checkout links, price quote cards, and availability badges.
   - Mounted globally in `app/layout.tsx`.
 - [x] **Files Created & Modified**:
-  - Created: `knowledge.md`, `lib/ai/knowledge-retriever.ts`, `app/api/ai/tts/route.ts`, `components/ai/ai-assistant-widget.tsx`, `tests/unit/ai-assistant-architecture.test.ts`.
-  - Modified: `lib/services/ai-agent-service.ts`, `app/layout.tsx`, `.env.local`, `package.json`, `memory.md`.
-  - Removed: `components/ai/elevenlabs-agent-widget.tsx`, `tests/unit/elevenlabs-agent-integration.test.ts`.
+  - Created: `app/api/ai/elevenlabs/signed-url/route.ts`, `lib/ai/conversation-manager.ts`, `lib/ai/smart-recommender.ts`, `tests/unit/conversation-manager.test.ts`.
+  - Modified: `lib/services/ai-agent-service.ts`, `components/ai/ai-assistant-widget.tsx`, `package.json`, `.env.local`, `tests/unit/ai-assistant-architecture.test.ts`.
+  - Cleaned: Uninstalled `@google/genai`, purged `GEMINI_API_KEY`.
 
 ## Verification Metrics
 
-- Build: PASS (`npm run build` — 48/48 static & dynamic routes compiled)
-- Lint: PASS (`npx eslint` — 0 errors, 0 warnings across all directories)
+- Build: PASS (`npm run build` — 49/49 static & dynamic routes compiled)
 - Type Check: PASS (`npx tsc --noEmit` — 0 errors)
-- Tests: PASS (`npm test` — 25/25 test files, 213/213 unit tests pass)
+- Tests: PASS (`npm test` — 26/26 test files, 227/227 unit tests pass)
 - Architecture Suite: PASS (`tests/unit/ai-assistant-architecture.test.ts` — 9/9 tests pass)
-- Dev Server: RUNNING (`next dev` on `http://localhost:3000`)
+- Dev Server: RUNNING (`next dev --webpack` on `http://localhost:3000`)

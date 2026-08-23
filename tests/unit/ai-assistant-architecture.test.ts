@@ -3,7 +3,7 @@ import { knowledgeRetriever } from '@/lib/ai/knowledge-retriever';
 import { aiAgentService } from '@/lib/services/ai-agent-service';
 import { AiAssistantWidget } from '@/components/ai/ai-assistant-widget';
 
-describe('New AI Assistant Architecture (Gemini + knowledge.md RAG + ElevenLabs TTS)', () => {
+describe('ElevenLabs AI Agent Architecture (ElevenLabs Agent + knowledge.md RAG + Voice)', () => {
   describe('1. Knowledge System (knowledge.md RAG Retriever)', () => {
     it('loads and parses knowledge.md into structured sections', () => {
       const sections = knowledgeRetriever.getAllSections();
@@ -62,20 +62,14 @@ describe('New AI Assistant Architecture (Gemini + knowledge.md RAG + ElevenLabs 
   });
 
   describe('3. Clean Frontend & Security Guardrails', () => {
-    it('ensures old ElevenLabs Conversational Agent widget is removed', () => {
-      let legacyExists = true;
-      try {
-        require.resolve('@/components/ai/elevenlabs-agent-widget');
-      } catch {
-        legacyExists = false;
-      }
-      expect(legacyExists).toBe(false);
+    it('ensures Gemini API key is removed from environment', () => {
+      expect(process.env.NEXT_PUBLIC_GEMINI_API_KEY).toBeUndefined();
+      expect(process.env.GEMINI_API_KEY).toBeUndefined();
     });
 
-    it('ensures API keys are server-side only', () => {
-      // Keys should not be prefixed with NEXT_PUBLIC_ for sensitive operations
-      expect(process.env.NEXT_PUBLIC_GEMINI_API_KEY).toBeUndefined();
+    it('ensures ElevenLabs API keys are server-side only', () => {
       expect(process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY).toBeUndefined();
+      expect(process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID).toBeUndefined();
     });
   });
 });

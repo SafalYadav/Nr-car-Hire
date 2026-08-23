@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
 import { vehicleStore, type VehicleRecord } from '@/lib/db/vehicle-store';
 import { inventoryService } from '@/lib/services/inventory-service';
 import { bookingService } from '@/lib/services/booking-service';
@@ -8,6 +7,8 @@ import { discountStore } from '@/lib/db/discount-store';
 import { bookingStore } from '@/lib/db/booking-store';
 import { RENTAL_POLICIES, AIRPORT_HUBS, VEHICLE_COMPARISONS } from '@/lib/data/knowledge-base';
 import { knowledgeRetriever } from '@/lib/ai/knowledge-retriever';
+import { conversationManager, type ManagedConversationState } from '@/lib/ai/conversation-manager';
+import { smartRecommender } from '@/lib/ai/smart-recommender';
 import {
   normalizeUserText,
   extractNaturalDates,
@@ -749,7 +750,6 @@ export class AiAgentService {
   private async _processChat(messages: ChatMessage[]): Promise<ChatResponse> {
     const userMessage = messages[messages.length - 1]?.content || '';
     const norm = normalizeUserText(userMessage);
-    const apiKey = process.env.GEMINI_API_KEY?.trim();
 
     // Grounding context from fleet database
     const allVehiclesResponse = await vehicleStore.list({ limit: 50 });
@@ -817,112 +817,12 @@ export class AiAgentService {
       };
     }
 
-    if (apiKey) {
-      try {
-        const ai = new GoogleGenAI({ apiKey });
-
-        let fleetSummary = 'No vehicles match your exact requirements in the fleet.';
-        if (validVehicles.length > 0) {
-          fleetSummary = validVehicles
-            .map(
-              (v) =>
-                `- ${v.year} ${v.make} ${v.model} (ID: ${v.id}, Category: ${v.category}, Rate: ₹${v.dailyRate}/day, Seats: ${v.seats}, Trans: ${v.transmission}, Fuel: ${v.fuelType}, Luggage: ${v.luggage} bags, Location: ${v.location}, URL: /book/${v.id})`,
-            )
-            .join('\n');
-        }
-
-        const discountsSummary = discounts
-          .map((d) => `- Code: ${d.code} (${d.description})`)
-          .join('\n');
-        const extrasSummary = extras
-          .map((e) => `- ${e.name}: ₹${e.price} (${e.pricingType}) - ${e.recommendedFor}`)
-          .join('\n');
-
-        // Dynamic knowledge retrieval from knowledge.md
-        const relevantKnowledge = knowledgeRetriever.retrieveRelevantKnowledge(userMessage, 3);
-
-        const systemInstruction = `You are NR Concierge, the official luxury AI rental assistant for NR Car Hire — Australia's premier car rental service.
-Your conversational style is remarkably intelligent, warm, highly capable, and empathetic, powered by Google Gemini.
-
-PRIMARY SOURCE OF TRUTH (FROM knowledge.md):
-${relevantKnowledge}
-
-CONVERSATIONAL INTELLIGENCE & AVAILABILITY RULES:
-1. SOURCE OF TRUTH: Use the provided knowledge base above as your single source of truth. NEVER hallucinate vehicles, prices, non-existent promo codes, or fabricated policies. If information is not in the knowledge base, state clearly that it is unavailable and offer customer support contact details (1800-NR-HIRE / concierge@nrcarhire.com.au).
-2. LANGUAGE: Respond ONLY in clean, fluent, natural conversational English. Even if the customer speaks or types in casual slang, Hinglish ("bhai camry hai?", "mujhe car chahiye"), typos, or colloquial language, understand their intent seamlessly, but ALWAYS generate your response in 100% natural English. Never output Hindi, Gujarati, or other languages.
-3. Track conversational context fluidly: understand pronouns ("this one", "it"), ordinal references ("the first one", "second option"), and user corrections ("actually change that to 7 days", "no make it camry").
-4. DO NOT use raw Markdown formatting syntax like double asterisks (**), backticks (\`), or raw hashtag headers (###) in your text output.
-5. Keep all prices in INR (₹) (e.g. ₹89/day).
-6. Always provide direct booking links (/book/[vehicleId]).
-7. VEHICLE TRUTH & FILTER ACCURACY: Never recommend a vehicle that violates user requirements or claim a vehicle has attributes it does not have. For example, if a user requests a "manual SUV" and all SUVs in the fleet are automatic, state: "I don't currently have a manual SUV in the fleet. I can show you the closest available automatic SUVs instead." NEVER claim an automatic vehicle is manual.
-8. If a vehicle requested is not in the NR Car Hire fleet (e.g. BMW X7, Tesla, Audi), say: "I couldn't find that vehicle in our NR Car Hire fleet. Want me to show you some similar options?" and recommend suitable fleet alternatives.
-9. If a vehicle is available, say: "Yes, the [Vehicle Name] is available from [Pickup] to [Dropoff]."
-10. If a vehicle is under maintenance, say: "The [Vehicle Name] is unavailable for those dates because it is scheduled for maintenance. Would you like me to show you similar vehicles that are available for those dates?"
-11. If a vehicle has a booking overlap, say: "The [Vehicle Name] is unavailable for those dates because it is already booked for part of that period. Would you like me to show you similar vehicles that are available for those dates?"
-12. If the user asks something completely outside car rentals (e.g. write a Python script, recipe, quantum physics), respond politely in character as the NR Car Hire concierge and guide them back to finding their ideal rental car.
-
-GROUNDED FLEET KNOWLEDGE:
-${fleetSummary}
-
-ACTIVE PUBLIC PROMOTIONS:
-${discountsSummary}
-
-OPTIONAL EXTRAS:
-${extrasSummary}
-
-RENTAL POLICIES:
-- Age: ${rules.ageRequirements}
-- Licence: ${rules.licencePolicy}
-- Mileage: ${rules.mileage}
-- Fuel: ${rules.fuelPolicy}
-- Cancellation: ${rules.cancellation}
-- Hubs: ${rules.hubs.map((h) => `${h.name} (${h.state})`).join(', ')}`;
-
-        // Conversation history
-        const conversationContext = messages
-          .slice(-8)
-          .map((m) => `${m.role === 'user' ? 'Customer' : 'NR Concierge'}: ${m.content}`)
-          .join('\n');
-
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: `${systemInstruction}\n\nCONVERSATION HISTORY:\n${conversationContext}\n\nCustomer Latest Message: ${userMessage}`,
-                },
-              ],
-            },
-          ],
-        });
-
-        const rawReply =
-          response.text ||
-          "I'm here to help you find the ideal vehicle from our Australian fleet. How can I assist your journey today?";
-        const cleanReply = sanitizeChatText(rawReply);
-
-        // Intelligent Extraction of Structured Tool Outputs for the UI
-        return await this.enrichChatResponse(
-          cleanReply,
-          userMessage,
-          messages,
-          validVehicles,
-          state,
-        );
-      } catch (geminiError) {
-        logger.error('Gemini API Error, falling back to local agent engine:', geminiError);
-        // Fall through to local deterministic agent engine
-      }
-    }
-
-    // Local Deterministic Agent Engine (Fallback, Test Mode & Zero-Key Runs)
+    // Authoritative Agent Engine (knowledge.md RAG + Multi-Turn Memory + Fleet Recommender)
     return this.processLocalAgent(userMessage, messages, validVehicles, rules, state);
   }
 
   /**
-   * Enriches Gemini response text with structured UI Cards (Vehicles, Price, Availability, Booking Draft)
+   * Enriches response text with structured UI Cards (Vehicles, Price, Availability, Booking Draft)
    * Strictly enforces Authoritative InventoryService Availability to prevent any AI hallucinations or bypasses.
    */
   private async enrichChatResponse(
@@ -1045,6 +945,11 @@ RENTAL POLICIES:
       };
 
       if (!avail.isAvailable) {
+        const managed = conversationManager.extractState(messages, vehicles);
+        if (!managed.unavailableVehicles.includes(targetVehicle.id)) {
+          managed.unavailableVehicles.push(targetVehicle.id);
+        }
+
         // Enforce strict customer-friendly unavailable message with alternatives
         const customerReason = formatCustomerUnavailableReason(
           avail.vehicleName,
@@ -1052,15 +957,12 @@ RENTAL POLICIES:
           formattedD,
           avail.reason,
         );
-        const searchRes = await this.searchVehicles({ category: targetVehicle.category }, state);
-        const alternatives = searchRes.vehicles
-          .filter((v) => v.id !== targetVehicle.id)
-          .slice(0, 2);
+        const rec = await smartRecommender.findAvailableAlternatives(managed, vehicles, 2);
 
         return {
           message: customerReason,
           availabilityCard,
-          suggestedVehicles: alternatives.length > 0 ? alternatives : undefined,
+          suggestedVehicles: rec.vehicles.length > 0 ? rec.vehicles : undefined,
           quickActions: ['Check Other Dates', 'Browse All Fleet', 'Recommend Alternatives'],
           toolCallsExecuted,
         };
@@ -1385,98 +1287,48 @@ RENTAL POLICIES:
       norm.includes('similar cars') ||
       norm.includes('show alternatives') ||
       norm.includes('similar options') ||
+      norm.includes('alternate car') ||
+      norm.includes('doosri car') ||
+      norm.includes('dusri car') ||
+      norm.includes('aur car dikhao') ||
       norm === 'show similar' ||
       norm === 'similar'
     ) {
       toolCallsExecuted.push('searchVehicles');
       const allV = await vehicleStore.list({ limit: 50 });
-      const currentVehicleId = activeVehicle?.id;
-      const currentCategory = activeVehicle?.category?.toLowerCase() || state.category || 'suv';
+      const managed = conversationManager.extractState(messages, allV.vehicles);
 
-      // Pick closest alternative candidates in fleet
-      let candidateVehicles = allV.vehicles.filter((v) => v.id !== currentVehicleId);
-
-      // If category is utility / 4x4 or SUV, prefer SUVs or large vehicles
-      if (currentCategory === 'utility') {
-        candidateVehicles = candidateVehicles.filter(
-          (v) => v.category.toLowerCase() === 'suv' || v.category.toLowerCase() === 'sedan',
-        );
-      } else if (currentCategory === 'suv') {
-        candidateVehicles = candidateVehicles.filter((v) => v.category.toLowerCase() === 'suv');
-      } else if (currentCategory === 'sedan') {
-        candidateVehicles = candidateVehicles.filter(
-          (v) => v.category.toLowerCase() === 'sedan' || v.category.toLowerCase() === 'luxury',
-        );
+      // If active vehicle exists and was unavailable, mark it
+      if (activeVehicle && !managed.unavailableVehicles.includes(activeVehicle.id)) {
+        managed.unavailableVehicles.push(activeVehicle.id);
       }
 
-      // If dates are in context, check authoritative availability for those dates!
-      const pickupDate = state.pickupDate || '2026-09-01';
-      const dropoffDate = state.dropoffDate || '2026-09-05';
-      const formattedP = state.formattedPickup || pickupDate;
-      const formattedD = state.formattedDropoff || dropoffDate;
+      const rec = await smartRecommender.findAvailableAlternatives(managed, allV.vehicles, 2);
 
-      const availableCandidates: SuggestedVehicle[] = [];
-      for (const cand of candidateVehicles) {
-        const check = await inventoryService.checkAvailability(
-          cand.id,
-          new Date(pickupDate),
-          new Date(dropoffDate),
-        );
-        if (check.isAvailable) {
-          availableCandidates.push({
-            id: cand.id,
-            name: `${cand.year} ${cand.make} ${cand.model}`,
-            year: cand.year,
-            make: cand.make,
-            model: cand.model,
-            category: cand.category,
-            dailyRate: cand.dailyRate,
-            seats: cand.seats,
-            transmission: cand.transmission,
-            fuelType: cand.fuelType,
-            luggage: cand.luggage,
-            imageUrl: cand.imageUrl || null,
-            location: cand.location,
-            bookingUrl: `/book/${cand.id}?pickupDate=${pickupDate}&dropoffDate=${dropoffDate}`,
-            detailsUrl: `/fleet/${cand.id}`,
-            matchReason: `Available alternative for ${formattedP} to ${formattedD}: ${cand.transmission} with ${cand.seats} seats at ₹${cand.dailyRate}/day.`,
-          });
-        }
+      const pickupDate = managed.pickupDate || state.pickupDate || '2026-09-01';
+      const dropoffDate = managed.dropoffDate || state.dropoffDate || '2026-09-05';
+      const formattedP = managed.formattedPickup || state.formattedPickup || pickupDate;
+      const formattedD = managed.formattedDropoff || state.formattedDropoff || dropoffDate;
+
+      let msg = `Here are similar available vehicles for your travel dates (${formattedP} to ${formattedD}):`;
+      if (managed.detectedLanguage === 'hinglish' || managed.detectedLanguage === 'hi') {
+        msg = `Aapki travel dates (${formattedP} se ${formattedD}) ke liye ye similar available options hain:`;
+      } else if (managed.detectedLanguage === 'gu') {
+        msg = `Tamari travel dates (${formattedP} thi ${formattedD}) mate available similar options aa chhe:`;
       }
-
-      const finalList =
-        availableCandidates.length > 0
-          ? availableCandidates
-          : candidateVehicles.slice(0, 2).map((cand) => ({
-              id: cand.id,
-              name: `${cand.year} ${cand.make} ${cand.model}`,
-              year: cand.year,
-              make: cand.make,
-              model: cand.model,
-              category: cand.category,
-              dailyRate: cand.dailyRate,
-              seats: cand.seats,
-              transmission: cand.transmission,
-              fuelType: cand.fuelType,
-              luggage: cand.luggage,
-              imageUrl: cand.imageUrl || null,
-              location: cand.location,
-              bookingUrl: `/book/${cand.id}?pickupDate=${pickupDate}&dropoffDate=${dropoffDate}`,
-              detailsUrl: `/fleet/${cand.id}`,
-              matchReason: `Closest alternative: ${cand.transmission} with ${cand.seats} seats at ₹${cand.dailyRate}/day.`,
-            }));
 
       return {
-        message: `Here are similar available vehicles for your travel dates (${formattedP} to ${formattedD}):`,
-        suggestedVehicles: finalList,
+        message: msg,
+        suggestedVehicles: rec.vehicles,
         quickActions: [
-          finalList[0] ? `Book ${finalList[0].make} ${finalList[0].model}` : 'Book Vehicle',
+          rec.vehicles[0] ? `Book ${rec.vehicles[0].make} ${rec.vehicles[0].model}` : 'Book Vehicle',
           'Check Different Dates',
           'Browse All Fleet',
         ],
         toolCallsExecuted,
       };
     }
+
 
     // 5c. Multi-turn Follow-up handling: "check different dates" / "different dates" / "other dates"
     if (
