@@ -532,7 +532,12 @@ function AiAssistantWidgetInner() {
                         {msg.availabilityCard.bookingUrl && (
                           <Link
                             href={msg.availabilityCard.bookingUrl}
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                              setIsOpen(false);
+                              if (conversation.status === 'connected') {
+                                endLiveConversation();
+                              }
+                            }}
                             className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-gold hover:underline"
                           >
                             <span>Proceed to direct booking</span>
@@ -595,7 +600,12 @@ function AiAssistantWidgetInner() {
                         <div className="pt-1">
                           <Link
                             href={msg.bookingDraft.bookingUrl}
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                              setIsOpen(false);
+                              if (conversation.status === 'connected') {
+                                endLiveConversation();
+                              }
+                            }}
                             className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold py-2.5 px-4 text-xs font-bold text-midnight hover:bg-gold-light transition-all shadow-md shadow-gold/20"
                           >
                             <span>Proceed to Secure Payment</span>

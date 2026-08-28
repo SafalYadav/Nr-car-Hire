@@ -490,6 +490,29 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
 
         const bookingUrl = `/book/${vehicle.id}?${queryParams.toString()}`;
 
+        // Cache draft locally in browser storage for instant resilient prefill
+        if (typeof window !== 'undefined') {
+          try {
+            const draftPayload = {
+              vehicleId: vehicle.id,
+              pickupDate,
+              dropoffDate,
+              pickupLocation: pLoc,
+              dropoffLocation: dLoc,
+              promoCode,
+              extras: selectedExtras.map((e) => e.extraId),
+              firstName,
+              lastName,
+              email,
+              phone,
+              licenseNumber,
+              timestamp: Date.now(),
+            };
+            sessionStorage.setItem('nr_voice_booking_draft', JSON.stringify(draftPayload));
+            localStorage.setItem('nr_voice_booking_draft', JSON.stringify(draftPayload));
+          } catch {}
+        }
+
         callbacks.onPostMessage?.({
           id: `draft-${Date.now()}`,
           role: 'assistant',
@@ -523,8 +546,8 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
           },
         });
 
-        const customerMention = firstName ? ` for ${firstName}${lastName ? ' ' + lastName : ''}` : '';
-        return `Booking draft prepared${customerMention} for ${vehicleFullName} from ${pickupDate} to ${dropoffDate}. Total amount is ${quote.finalAmount} rupees. A 'Proceed to Secure Payment' button has been presented on the customer's screen for them to finalize checkout with Razorpay.`;
+        const customerMention = firstName ? ` for customer ${firstName}${lastName ? ' ' + lastName : ''}` : '';
+        return `Booking draft prepared${customerMention} for ${vehicleFullName} (${pickupDate} to ${dropoffDate}). Total amount: ${quote.finalAmount} rupees. Status: PAYMENT_PENDING. The on-screen 'Proceed to Secure Payment' button is now ready for the customer. Instruct the customer: "I have prepared your booking draft on screen. Please click the Proceed to Secure Payment button to enter your payment details and finalize your reservation." IMPORTANT: Do NOT say payment is successful or completed. Payment has not occurred yet.`;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Booking draft error';
         return `Error creating booking draft: ${msg}.`;
@@ -580,6 +603,28 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
         const bookingUrl = `/book/${vehicle.id}?${queryParams.toString()}`;
         const vehicleFullName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
 
+        if (typeof window !== 'undefined') {
+          try {
+            const draftPayload = {
+              vehicleId: vehicle.id,
+              pickupDate,
+              dropoffDate,
+              pickupLocation: pLoc,
+              dropoffLocation: dLoc,
+              promoCode,
+              extras: selectedExtras.map((e) => e.extraId),
+              firstName,
+              lastName,
+              email,
+              phone,
+              licenseNumber,
+              timestamp: Date.now(),
+            };
+            sessionStorage.setItem('nr_voice_booking_draft', JSON.stringify(draftPayload));
+            localStorage.setItem('nr_voice_booking_draft', JSON.stringify(draftPayload));
+          } catch {}
+        }
+
         const diffMs = new Date(dropoffDate).getTime() - new Date(pickupDate).getTime();
         const rentalDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
         const estimatedTotal = rentalDays * vehicle.dailyRate;
@@ -602,7 +647,7 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
           },
         });
 
-        return `A direct checkout action for the ${vehicle.make} ${vehicle.model} has been presented on screen with a 'Proceed to Secure Payment' button. Please invite the customer to click the button to complete payment with Razorpay.`;
+        return `Checkout action generated for ${vehicle.make} ${vehicle.model}. Status: PAYMENT_PENDING. Total amount: ${estimatedTotal} rupees. Instruct the customer: "Please click the Proceed to Secure Payment button on your screen to complete your payment with Razorpay." IMPORTANT: Do NOT say payment is successful or completed. Payment has not occurred yet.`;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Checkout generation error';
         return `Error generating checkout action: ${msg}.`;
@@ -639,6 +684,14 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
           content: `Booking Reference: ${booking.bookingNumber}\n• Status: ${booking.status}\n• Payment: ${booking.paymentStatus}\n• Dates: ${pickupFormatted} to ${dropoffFormatted}\n• Amount: ₹${booking.finalAmount} INR`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         });
+
+        if (booking.status === 'CONFIRMED' && booking.paymentStatus === 'PAID') {
+          return `Booking reference ${booking.bookingNumber} is currently CONFIRMED with payment status PAID for ${booking.vehicleId} (total ${booking.finalAmount} rupees). The reservation is complete and active.`;
+        }
+
+        if (booking.status === 'PAYMENT_PENDING') {
+          return `Booking reference ${booking.bookingNumber} for ${booking.vehicleId} is PAYMENT_PENDING. Total amount is ${booking.finalAmount} rupees. Payment has NOT been received yet. Please instruct the customer to complete payment with Razorpay.`;
+        }
 
         return `Booking reference ${booking.bookingNumber} is currently ${booking.status} with payment status ${booking.paymentStatus}. Rental vehicle is ${booking.vehicleId} from ${pickupFormatted} to ${dropoffFormatted}, total amount ${booking.finalAmount} rupees.`;
       } catch (err: unknown) {

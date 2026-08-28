@@ -66,6 +66,18 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
     searchParams?.get('license_number') ||
     searchParams?.get('license');
 
+  // Helper to read voice assistant draft cached in browser storage
+  const getVoiceDraft = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw =
+        sessionStorage.getItem('nr_voice_booking_draft') ||
+        localStorage.getItem('nr_voice_booking_draft');
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return null;
+  };
+
   const [selectedVehicle] = useState<Vehicle>(initialVehicle);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
@@ -73,50 +85,88 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [extrasList, setExtrasList] = useState<ExtraRecord[]>([]);
 
-  const [pickupLocation, setPickupLocation] = useState(
-    () => urlPickupLocation || 'Sydney Airport Hub (SYD)',
-  );
-  const [dropoffLocation, setDropoffLocation] = useState(
-    () => urlDropoffLocation || urlPickupLocation || 'Sydney Airport Hub (SYD)',
-  );
-  const [pickupDate, setPickupDate] = useState(
-    () => urlPickup || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-  );
-  const [dropoffDate, setDropoffDate] = useState(
-    () => urlDropoff || new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
-  );
+  const [pickupLocation, setPickupLocation] = useState(() => {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    return urlPickupLocation || draft?.pickupLocation || 'Sydney Airport Hub (SYD)';
+  });
+  const [dropoffLocation, setDropoffLocation] = useState(() => {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    return (
+      urlDropoffLocation ||
+      draft?.dropoffLocation ||
+      urlPickupLocation ||
+      draft?.pickupLocation ||
+      'Sydney Airport Hub (SYD)'
+    );
+  });
+  const [pickupDate, setPickupDate] = useState(() => {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    return (
+      urlPickup ||
+      draft?.pickupDate ||
+      new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
+    );
+  });
+  const [dropoffDate, setDropoffDate] = useState(() => {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    return (
+      urlDropoff ||
+      draft?.dropoffDate ||
+      new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0]
+    );
+  });
   const [pickupTime, setPickupTime] = useState('10:00');
   const [returnTime, setReturnTime] = useState('10:00');
 
   const { user, profile } = useAuth();
 
-  // Customer Details (pre-filled from voice agent deep-link or authenticated profile)
-  const [customer, setCustomer] = useState(() => ({
-    firstName: urlFirstName || profile?.firstName || user?.user_metadata?.first_name || '',
-    lastName: urlLastName || profile?.lastName || user?.user_metadata?.last_name || '',
-    email: urlEmail || user?.email || '',
-    phone: urlPhone || profile?.phone || user?.user_metadata?.phone || '',
-    dateOfBirth: '',
-    licenseNumber: urlLicenseNumber || '',
-    address: '',
-    city: 'Sydney',
-    state: 'NSW',
-    postalCode: '2000',
-  }));
+  // Customer Details (pre-filled from voice agent deep-link, cached draft, or auth profile)
+  const [customer, setCustomer] = useState(() => {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    return {
+      firstName:
+        urlFirstName ||
+        draft?.firstName ||
+        profile?.firstName ||
+        user?.user_metadata?.first_name ||
+        '',
+      lastName:
+        urlLastName ||
+        draft?.lastName ||
+        profile?.lastName ||
+        user?.user_metadata?.last_name ||
+        '',
+      email: urlEmail || draft?.email || user?.email || '',
+      phone:
+        urlPhone ||
+        draft?.phone ||
+        profile?.phone ||
+        user?.user_metadata?.phone ||
+        '',
+      dateOfBirth: '',
+      licenseNumber: urlLicenseNumber || draft?.licenseNumber || '',
+      address: '',
+      city: 'Sydney',
+      state: 'NSW',
+      postalCode: '2000',
+    };
+  });
 
-  // Selected Extras (initialized with URL extras or default zero excess)
+  // Selected Extras (initialized with URL extras, cached draft extras, or default zero excess)
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>(() => {
-    if (urlExtras) {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    const rawExtrasList = urlExtras
+      ? urlExtras.split(',')
+      : Array.isArray(draft?.extras)
+        ? draft.extras
+        : undefined;
+
+    if (rawExtrasList && rawExtrasList.length > 0) {
       const extrasMap: Record<string, number> = {};
-      const parsed = urlExtras.split(',');
-      for (const ex of parsed) {
-        const norm = ex.trim();
+      for (const ex of rawExtrasList) {
+        const norm = typeof ex === 'string' ? ex.trim() : '';
         if (norm) {
-          if (norm.startsWith('ext-')) {
-            extrasMap[norm] = 1;
-          } else {
-            extrasMap[norm] = 1;
-          }
+          extrasMap[norm] = 1;
         }
       }
       if (Object.keys(extrasMap).length > 0) return extrasMap;
@@ -127,22 +177,51 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
   });
 
   // Promo Code
-  const [promoCodeInput, setPromoCodeInput] = useState(() => urlPromo || '');
-  const [appliedPromo, setAppliedPromo] = useState<string | undefined>(() => urlPromo || undefined);
+  const [promoCodeInput, setPromoCodeInput] = useState(() => {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    return urlPromo || draft?.promoCode || '';
+  });
+  const [appliedPromo, setAppliedPromo] = useState<string | undefined>(() => {
+    const draft = typeof window !== 'undefined' ? getVoiceDraft() : null;
+    return urlPromo || draft?.promoCode || undefined;
+  });
   const [promoFeedback, setPromoFeedback] = useState<{ success: boolean; message: string } | null>(
-    () => (urlPromo ? { success: true, message: `Promo code ${urlPromo} pre-applied.` } : null),
+    () => {
+      const activePromo = urlPromo || (typeof window !== 'undefined' ? getVoiceDraft()?.promoCode : undefined);
+      return activePromo ? { success: true, message: `Promo code ${activePromo} pre-applied.` } : null;
+    },
   );
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
 
   // Sync profile & deep-link parameters if they update post-mount
   useEffect(() => {
+    const draft = getVoiceDraft();
     setCustomer((prev) => ({
       ...prev,
-      firstName: prev.firstName || urlFirstName || profile?.firstName || user?.user_metadata?.first_name || '',
-      lastName: prev.lastName || urlLastName || profile?.lastName || user?.user_metadata?.last_name || '',
-      email: prev.email || urlEmail || user?.email || '',
-      phone: prev.phone || urlPhone || profile?.phone || user?.user_metadata?.phone || '',
-      licenseNumber: prev.licenseNumber || urlLicenseNumber || '',
+      firstName:
+        urlFirstName ||
+        draft?.firstName ||
+        prev.firstName ||
+        profile?.firstName ||
+        user?.user_metadata?.first_name ||
+        '',
+      lastName:
+        urlLastName ||
+        draft?.lastName ||
+        prev.lastName ||
+        profile?.lastName ||
+        user?.user_metadata?.last_name ||
+        '',
+      email: urlEmail || draft?.email || prev.email || user?.email || '',
+      phone:
+        urlPhone ||
+        draft?.phone ||
+        prev.phone ||
+        profile?.phone ||
+        user?.user_metadata?.phone ||
+        '',
+      licenseNumber:
+        urlLicenseNumber || draft?.licenseNumber || prev.licenseNumber || '',
     }));
   }, [profile, user, urlFirstName, urlLastName, urlEmail, urlPhone, urlLicenseNumber]);
 
