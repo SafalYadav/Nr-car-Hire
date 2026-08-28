@@ -50,6 +50,21 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
   const searchParams = useSearchParams();
   const urlPickup = searchParams?.get('pickupDate');
   const urlDropoff = searchParams?.get('dropoffDate');
+  const urlPickupLocation = searchParams?.get('pickupLocation');
+  const urlDropoffLocation = searchParams?.get('dropoffLocation');
+  const urlPromo = searchParams?.get('promo') || searchParams?.get('promoCode');
+  const urlExtras = searchParams?.get('extras');
+  const urlFirstName = searchParams?.get('firstName') || searchParams?.get('first_name');
+  const urlLastName = searchParams?.get('lastName') || searchParams?.get('last_name');
+  const urlEmail = searchParams?.get('email');
+  const urlPhone =
+    searchParams?.get('phone') ||
+    searchParams?.get('phone_number') ||
+    searchParams?.get('contact');
+  const urlLicenseNumber =
+    searchParams?.get('licenseNumber') ||
+    searchParams?.get('license_number') ||
+    searchParams?.get('license');
 
   const [selectedVehicle] = useState<Vehicle>(initialVehicle);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
@@ -58,8 +73,12 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
   const [locations, setLocations] = useState<LocationRecord[]>([]);
   const [extrasList, setExtrasList] = useState<ExtraRecord[]>([]);
 
-  const [pickupLocation, setPickupLocation] = useState('Sydney Airport Hub (SYD)');
-  const [dropoffLocation, setDropoffLocation] = useState('Sydney Airport Hub (SYD)');
+  const [pickupLocation, setPickupLocation] = useState(
+    () => urlPickupLocation || 'Sydney Airport Hub (SYD)',
+  );
+  const [dropoffLocation, setDropoffLocation] = useState(
+    () => urlDropoffLocation || urlPickupLocation || 'Sydney Airport Hub (SYD)',
+  );
   const [pickupDate, setPickupDate] = useState(
     () => urlPickup || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
   );
@@ -71,32 +90,61 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
   const { user, profile } = useAuth();
 
-  // Customer Details (pre-filled from authenticated Supabase profile if available)
+  // Customer Details (pre-filled from voice agent deep-link or authenticated profile)
   const [customer, setCustomer] = useState(() => ({
-    firstName: profile?.firstName || user?.user_metadata?.first_name || '',
-    lastName: profile?.lastName || user?.user_metadata?.last_name || '',
-    email: user?.email || '',
-    phone: profile?.phone || user?.user_metadata?.phone || '',
+    firstName: urlFirstName || profile?.firstName || user?.user_metadata?.first_name || '',
+    lastName: urlLastName || profile?.lastName || user?.user_metadata?.last_name || '',
+    email: urlEmail || user?.email || '',
+    phone: urlPhone || profile?.phone || user?.user_metadata?.phone || '',
     dateOfBirth: '',
-    licenseNumber: '',
+    licenseNumber: urlLicenseNumber || '',
     address: '',
     city: 'Sydney',
     state: 'NSW',
     postalCode: '2000',
   }));
 
-  // Selected Extras
-  const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({
-    'ext-zero-excess': 1,
+  // Selected Extras (initialized with URL extras or default zero excess)
+  const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>(() => {
+    if (urlExtras) {
+      const extrasMap: Record<string, number> = {};
+      const parsed = urlExtras.split(',');
+      for (const ex of parsed) {
+        const norm = ex.trim();
+        if (norm) {
+          if (norm.startsWith('ext-')) {
+            extrasMap[norm] = 1;
+          } else {
+            extrasMap[norm] = 1;
+          }
+        }
+      }
+      if (Object.keys(extrasMap).length > 0) return extrasMap;
+    }
+    return {
+      'ext-zero-excess': 1,
+    };
   });
 
   // Promo Code
-  const [promoCodeInput, setPromoCodeInput] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<string | undefined>(undefined);
+  const [promoCodeInput, setPromoCodeInput] = useState(() => urlPromo || '');
+  const [appliedPromo, setAppliedPromo] = useState<string | undefined>(() => urlPromo || undefined);
   const [promoFeedback, setPromoFeedback] = useState<{ success: boolean; message: string } | null>(
-    null,
+    () => (urlPromo ? { success: true, message: `Promo code ${urlPromo} pre-applied.` } : null),
   );
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+
+  // Sync profile & deep-link parameters if they update post-mount
+  useEffect(() => {
+    setCustomer((prev) => ({
+      ...prev,
+      firstName: prev.firstName || urlFirstName || profile?.firstName || user?.user_metadata?.first_name || '',
+      lastName: prev.lastName || urlLastName || profile?.lastName || user?.user_metadata?.last_name || '',
+      email: prev.email || urlEmail || user?.email || '',
+      phone: prev.phone || urlPhone || profile?.phone || user?.user_metadata?.phone || '',
+      licenseNumber: prev.licenseNumber || urlLicenseNumber || '',
+    }));
+  }, [profile, user, urlFirstName, urlLastName, urlEmail, urlPhone, urlLicenseNumber]);
 
   // Authoritative Quote & Availability from Server
   const [quote, setQuote] = useState<BookingQuoteResult | null>(null);

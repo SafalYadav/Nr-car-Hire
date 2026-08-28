@@ -435,6 +435,13 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
           String(params.promo_code || params.promoCode || params.promo || '').trim().toUpperCase() || undefined;
         const rawExtras = params.extras || params.extra_ids || params.extraIds;
 
+        // Optional Customer Details collected during voice flow
+        const firstName = String(params.first_name || params.firstName || '').trim();
+        const lastName = String(params.last_name || params.lastName || '').trim();
+        const email = String(params.email || params.customer_email || params.customerEmail || '').trim();
+        const phone = String(params.phone || params.phone_number || params.phoneNumber || params.contact || '').trim();
+        const licenseNumber = String(params.license_number || params.licenseNumber || params.license || '').trim();
+
         const vehicle = resolveVehicleClient(rawVehicle) || KNOWN_FLEET[0];
         const pickupDate = rawPickup || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
         const dropoffDate = rawDropoff || new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0];
@@ -475,6 +482,11 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
         if (selectedExtras.length > 0) {
           queryParams.set('extras', selectedExtras.map((e) => e.extraId).join(','));
         }
+        if (firstName) queryParams.set('firstName', firstName);
+        if (lastName) queryParams.set('lastName', lastName);
+        if (email) queryParams.set('email', email);
+        if (phone) queryParams.set('phone', phone);
+        if (licenseNumber) queryParams.set('licenseNumber', licenseNumber);
 
         const bookingUrl = `/book/${vehicle.id}?${queryParams.toString()}`;
 
@@ -511,7 +523,8 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
           },
         });
 
-        return `Booking draft prepared for ${vehicleFullName} from ${pickupDate} to ${dropoffDate}. Total amount is ${quote.finalAmount} rupees. A 'Proceed to Secure Payment' button has been presented on the customer's screen for them to finalize checkout with Razorpay.`;
+        const customerMention = firstName ? ` for ${firstName}${lastName ? ' ' + lastName : ''}` : '';
+        return `Booking draft prepared${customerMention} for ${vehicleFullName} from ${pickupDate} to ${dropoffDate}. Total amount is ${quote.finalAmount} rupees. A 'Proceed to Secure Payment' button has been presented on the customer's screen for them to finalize checkout with Razorpay.`;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Booking draft error';
         return `Error creating booking draft: ${msg}.`;
@@ -528,23 +541,41 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
         ).trim();
         const rawPickup = String(params.pickup_date || params.pickupDate || '').trim();
         const rawDropoff = String(params.dropoff_date || params.dropoffDate || '').trim();
+        const pickupLocation = String(params.pickup_location || params.pickupLocation || '').trim();
+        const dropoffLocation = String(params.dropoff_location || params.dropoffLocation || '').trim();
         const promoCode =
           String(params.promo_code || params.promoCode || params.promo || '').trim().toUpperCase() || undefined;
         const rawExtras = params.extras || params.extra_ids || params.extraIds;
 
+        // Optional Customer Details collected during voice flow
+        const firstName = String(params.first_name || params.firstName || '').trim();
+        const lastName = String(params.last_name || params.lastName || '').trim();
+        const email = String(params.email || params.customer_email || params.customerEmail || '').trim();
+        const phone = String(params.phone || params.phone_number || params.phoneNumber || params.contact || '').trim();
+        const licenseNumber = String(params.license_number || params.licenseNumber || params.license || '').trim();
+
         const vehicle = resolveVehicleClient(rawVehicle) || KNOWN_FLEET[0];
         const pickupDate = rawPickup || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
         const dropoffDate = rawDropoff || new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0];
+        const pLoc = pickupLocation || vehicle.location || 'Sydney Airport Hub (SYD)';
+        const dLoc = dropoffLocation || pLoc;
         const selectedExtras = parseExtrasClient(rawExtras);
 
         const queryParams = new URLSearchParams({
           pickupDate,
           dropoffDate,
         });
+        if (pickupLocation) queryParams.set('pickupLocation', pickupLocation);
+        if (dropoffLocation) queryParams.set('dropoffLocation', dropoffLocation);
         if (promoCode) queryParams.set('promo', promoCode);
         if (selectedExtras.length > 0) {
           queryParams.set('extras', selectedExtras.map((e) => e.extraId).join(','));
         }
+        if (firstName) queryParams.set('firstName', firstName);
+        if (lastName) queryParams.set('lastName', lastName);
+        if (email) queryParams.set('email', email);
+        if (phone) queryParams.set('phone', phone);
+        if (licenseNumber) queryParams.set('licenseNumber', licenseNumber);
 
         const bookingUrl = `/book/${vehicle.id}?${queryParams.toString()}`;
         const vehicleFullName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
@@ -563,8 +594,8 @@ export function createElevenLabsClientTools(callbacks: ClientToolCallbacks = {})
             vehicleName: vehicleFullName,
             pickupDate,
             dropoffDate,
-            pickupLocation: vehicle.location,
-            dropoffLocation: vehicle.location,
+            pickupLocation: pLoc,
+            dropoffLocation: dLoc,
             estimatedTotal,
             currency: 'INR',
             bookingUrl,

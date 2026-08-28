@@ -210,30 +210,84 @@ describe('ElevenLabs Client Tools', () => {
 
       expect(response).toContain('Booking draft prepared');
       expect(response).toContain('356 rupees');
-      expect(posted[0].bookingDraft?.bookingUrl).toContain('/book/v-001-camry');
-      expect(posted[0].bookingDraft?.estimatedTotal).toBe(356);
-    });
-  });
-
-  describe('Tool 4: generate_checkout_action', () => {
-    it('generates direct checkout deep link without speaking raw URL', async () => {
-      const posted: ClientToolMessagePayload[] = [];
-      const tools = createElevenLabsClientTools({
-        onPostMessage: (msg) => posted.push(msg),
+        expect(posted[0].bookingDraft?.bookingUrl).toContain('/book/v-001-camry');
+        expect(posted[0].bookingDraft?.estimatedTotal).toBe(356);
       });
 
-      const response = await tools.generate_checkout_action({
-        vehicle_name: 'Mazda CX-5',
-        pickup_date: '2026-09-15',
-        dropoff_date: '2026-09-18',
-        promo_code: 'WEEKEND50',
-      });
+      it('includes collected customer details in the bookingUrl', async () => {
+        const posted: ClientToolMessagePayload[] = [];
+        const mockFetch = vi.fn().mockResolvedValue({
+          json: async () => ({
+            success: true,
+            data: {
+              vehicle: { id: 'v-001-camry', make: 'Toyota', model: 'Camry', year: 2024 },
+              rentalDays: 4,
+              dailyRate: 89,
+              baseAmount: 356,
+              extrasAmount: 0,
+              discountAmount: 0,
+              taxAmount: 0,
+              finalAmount: 356,
+            },
+          }),
+        });
 
-      expect(response).toContain('Proceed to Secure Payment');
-      expect(response).not.toContain('http://');
-      expect(posted[0].bookingDraft?.bookingUrl).toContain('/book/v-002-cx5');
-      expect(posted[0].bookingDraft?.bookingUrl).toContain('promo=WEEKEND50');
+        const tools = createElevenLabsClientTools({
+          onPostMessage: (msg) => posted.push(msg),
+          fetchFn: mockFetch as unknown as typeof fetch,
+        });
+
+        const response = await tools.create_booking_draft({
+          vehicle_name: 'Toyota Camry',
+          pickup_date: '2026-09-10',
+          dropoff_date: '2026-09-14',
+          first_name: 'Emma',
+          last_name: 'Watson',
+          email: 'emma.watson@example.com',
+          phone: '+61412345678',
+          license_number: 'NSW-998877',
+        });
+
+        expect(response).toContain('Emma Watson');
+        const url = posted[0].bookingDraft?.bookingUrl || '';
+        expect(url).toContain('firstName=Emma');
+        expect(url).toContain('lastName=Watson');
+        expect(url).toContain('email=emma.watson%40example.com');
+        expect(url).toContain('phone=%2B61412345678');
+        expect(url).toContain('licenseNumber=NSW-998877');
+      });
     });
+
+    describe('Tool 4: generate_checkout_action', () => {
+      it('generates direct checkout deep link without speaking raw URL', async () => {
+        const posted: ClientToolMessagePayload[] = [];
+        const tools = createElevenLabsClientTools({
+          onPostMessage: (msg) => posted.push(msg),
+        });
+
+        const response = await tools.generate_checkout_action({
+          vehicle_name: 'Mazda CX-5',
+          pickup_date: '2026-09-15',
+          dropoff_date: '2026-09-18',
+          promo_code: 'WEEKEND50',
+          first_name: 'David',
+          last_name: 'Warner',
+          email: 'david.warner@example.com',
+          phone: '+61499887766',
+          license_number: 'VIC-123456',
+        });
+
+        expect(response).toContain('Proceed to Secure Payment');
+        expect(response).not.toContain('http://');
+        const url = posted[0].bookingDraft?.bookingUrl || '';
+        expect(url).toContain('/book/v-002-cx5');
+        expect(url).toContain('promo=WEEKEND50');
+        expect(url).toContain('firstName=David');
+        expect(url).toContain('lastName=Warner');
+        expect(url).toContain('email=david.warner%40example.com');
+        expect(url).toContain('phone=%2B61499887766');
+        expect(url).toContain('licenseNumber=VIC-123456');
+      });
   });
 
   describe('Tool 5: lookup_booking_status', () => {
