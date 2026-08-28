@@ -444,14 +444,25 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
 
               const verifyData = await verifyRes.json();
               if (verifyData.success) {
-                const targetBookingId = verifyData.data?.bookingId || booking.id || booking.bookingNumber;
-                const queryParams = new URLSearchParams();
-                if (response.razorpay_order_id) queryParams.set('orderId', response.razorpay_order_id);
-                if (booking.bookingNumber) queryParams.set('bookingNumber', booking.bookingNumber);
-                if (response.razorpay_payment_id) queryParams.set('paymentId', response.razorpay_payment_id);
-                
-                const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
-                router.push(`/booking/confirmation/${encodeURIComponent(targetBookingId)}${qs}`);
+                const targetBookingId = verifyData.data?.bookingId || booking.id;
+                const bookingNumber = verifyData.data?.bookingNumber || booking.bookingNumber;
+                const userEmail = customer.email;
+
+                if (typeof window !== 'undefined') {
+                  try {
+                    localStorage.setItem('nr_customer_email', userEmail);
+                    localStorage.setItem('nr_last_booking_id', targetBookingId);
+                  } catch {}
+                }
+
+                const queryParams = new URLSearchParams({
+                  email: userEmail,
+                  bookingId: targetBookingId,
+                  bookingNumber: bookingNumber,
+                  confirmed: 'true',
+                });
+
+                router.push(`/account?${queryParams.toString()}`);
               } else {
                 setPaymentError(verifyData.error || 'Payment signature verification failed.');
                 setIsProcessingPayment(false);
@@ -492,12 +503,25 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
         });
 
         const verifyData = await verifyRes.json();
-        const targetBookingId = verifyData.data?.bookingId || booking.id || booking.bookingNumber;
-        const queryParams = new URLSearchParams();
-        if (paymentOrder.orderId) queryParams.set('orderId', paymentOrder.orderId);
-        if (booking.bookingNumber) queryParams.set('bookingNumber', booking.bookingNumber);
-        const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
-        router.push(`/booking/confirmation/${encodeURIComponent(targetBookingId)}${qs}`);
+        const targetBookingId = verifyData.data?.bookingId || booking.id;
+        const bookingNumber = verifyData.data?.bookingNumber || booking.bookingNumber;
+        const userEmail = customer.email;
+
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('nr_customer_email', userEmail);
+            localStorage.setItem('nr_last_booking_id', targetBookingId);
+          } catch {}
+        }
+
+        const queryParams = new URLSearchParams({
+          email: userEmail,
+          bookingId: targetBookingId,
+          bookingNumber: bookingNumber,
+          confirmed: 'true',
+        });
+
+        router.push(`/account?${queryParams.toString()}`);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'An error occurred during checkout';
