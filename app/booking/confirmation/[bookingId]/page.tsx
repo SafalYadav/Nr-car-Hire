@@ -14,6 +14,11 @@ interface ConfirmationPageProps {
   params: Promise<{
     bookingId: string;
   }>;
+  searchParams?: Promise<{
+    orderId?: string;
+    bookingNumber?: string;
+    paymentId?: string;
+  }>;
 }
 
 export const metadata: Metadata = {
@@ -21,14 +26,48 @@ export const metadata: Metadata = {
   description: 'Your premium rental vehicle has been reserved and confirmed.',
 };
 
-export default async function BookingConfirmationPage({ params }: ConfirmationPageProps) {
+export default async function BookingConfirmationPage({ params, searchParams }: ConfirmationPageProps) {
   const { bookingId } = await params;
-  let booking = await bookingStore.findById(bookingId);
-  if (!booking) {
-    booking = await bookingStore.findByBookingNumber(bookingId);
-  }
-  if (!booking) {
-    booking = await bookingStore.findByRazorpayOrderId(bookingId);
+  const sParams = searchParams ? await searchParams : {};
+  const cleanId = decodeURIComponent(bookingId || '').trim();
+  const fallbackOrderId = sParams.orderId ? decodeURIComponent(sParams.orderId).trim() : '';
+  const fallbackBookingNumber = sParams.bookingNumber ? decodeURIComponent(sParams.bookingNumber).trim() : '';
+  const fallbackPaymentId = sParams.paymentId ? decodeURIComponent(sParams.paymentId).trim() : '';
+
+  let booking = null;
+
+  // Multi-pass lookup across ID, bookingNumber, razorpayOrderId, and paymentStore
+  for (let attempt = 0; attempt < 3 && !booking; attempt++) {
+    if (attempt > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+    }
+
+    // 1. Direct ID lookup
+    if (cleanId && cleanId !== 'undefined' && cleanId !== 'null') {
+      booking = await bookingStore.findById(cleanId);
+      if (!booking) booking = await bookingStore.findByBookingNumber(cleanId);
+      if (!booking) booking = await bookingStore.findByRazorpayOrderId(cleanId);
+    }
+
+    // 2. Fallback query parameters lookup
+    if (!booking && fallbackBookingNumber) {
+      booking = await bookingStore.findByBookingNumber(fallbackBookingNumber);
+    }
+    if (!booking && fallbackOrderId) {
+      booking = await bookingStore.findByRazorpayOrderId(fallbackOrderId);
+    }
+
+    // 3. Payment record lookup
+    if (!booking && (cleanId || fallbackOrderId || fallbackPaymentId)) {
+      const searchTarget = fallbackOrderId || cleanId;
+      const payment =
+        (await paymentStore.findByOrderId(searchTarget)) ||
+        (fallbackPaymentId ? await paymentStore.findByPaymentId(fallbackPaymentId) : null);
+
+      if (payment?.bookingId) {
+        booking = await bookingStore.findById(payment.bookingId);
+      }
+    }
   }
 
   if (!booking) {

@@ -438,13 +438,20 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
+                  bookingId: booking.id,
                 }),
               });
 
               const verifyData = await verifyRes.json();
               if (verifyData.success) {
-                const targetBookingId = verifyData.data?.bookingId || booking.id;
-                router.push(`/booking/confirmation/${targetBookingId}`);
+                const targetBookingId = verifyData.data?.bookingId || booking.id || booking.bookingNumber;
+                const queryParams = new URLSearchParams();
+                if (response.razorpay_order_id) queryParams.set('orderId', response.razorpay_order_id);
+                if (booking.bookingNumber) queryParams.set('bookingNumber', booking.bookingNumber);
+                if (response.razorpay_payment_id) queryParams.set('paymentId', response.razorpay_payment_id);
+                
+                const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
+                router.push(`/booking/confirmation/${encodeURIComponent(targetBookingId)}${qs}`);
               } else {
                 setPaymentError(verifyData.error || 'Payment signature verification failed.');
                 setIsProcessingPayment(false);
@@ -480,12 +487,17 @@ export function BookingFlow({ vehicle: initialVehicle }: BookingFlowProps) {
             razorpay_order_id: paymentOrder.orderId,
             razorpay_payment_id: `pay_mock_${Date.now()}`,
             razorpay_signature: 'test_mode_simulation',
+            bookingId: booking.id,
           }),
         });
 
         const verifyData = await verifyRes.json();
-        const targetBookingId = verifyData.data?.bookingId || booking.id;
-        router.push(`/booking/confirmation/${targetBookingId}`);
+        const targetBookingId = verifyData.data?.bookingId || booking.id || booking.bookingNumber;
+        const queryParams = new URLSearchParams();
+        if (paymentOrder.orderId) queryParams.set('orderId', paymentOrder.orderId);
+        if (booking.bookingNumber) queryParams.set('bookingNumber', booking.bookingNumber);
+        const qs = queryParams.toString() ? `?${queryParams.toString()}` : '';
+        router.push(`/booking/confirmation/${encodeURIComponent(targetBookingId)}${qs}`);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'An error occurred during checkout';

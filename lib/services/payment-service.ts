@@ -253,11 +253,14 @@ export class PaymentService {
     });
 
     // 6. If a booking exists for this order, confirm it atomically
-    let confirmedBookingId: string | undefined;
+    let confirmedBookingId: string | undefined = validated.bookingId;
     let confirmedBookingNumber: string | undefined;
     try {
       const { bookingStore } = await import('@/lib/db/booking-store');
-      const booking = await bookingStore.findByRazorpayOrderId(razorpay_order_id);
+      let booking = await bookingStore.findByRazorpayOrderId(razorpay_order_id);
+      if (!booking && validated.bookingId) {
+        booking = await bookingStore.findById(validated.bookingId);
+      }
       if (booking) {
         if (booking.status === 'PAYMENT_PENDING') {
           const { bookingService } = await import('@/lib/services/booking-service');
