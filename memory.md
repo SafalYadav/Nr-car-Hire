@@ -199,15 +199,26 @@ The six mandatory source-of-truth files are:
   - `app/fleet/page.tsx` & `components/fleet/fleet-catalog.tsx`: Responsive luxury search bar, gearbox filter, sort order dropdown, category filter pills.
   - `app/fleet/[vehicleId]/page.tsx` & `components/fleet/vehicle-availability-checker.tsx`: Studio showcase, specs pills, rental inclusions, and 1-click booking CTA.
   - `components/booking/booking-flow.tsx`, `app/book/[vehicleId]/page.tsx`, `app/booking/confirmation/[bookingId]/page.tsx`, `app/account/page.tsx`: Full semantic theme upgrade across all 5 booking steps, summary cards, and confirmation vouchers.
-- [x] **ElevenLabs AI Concierge UI Polish**:
-  - Preserved 100% of official `@elevenlabs/react` hooks, WebSocket connection, signed URL route, and dynamic first message/voice.
-  - Elevated floating trigger with pulsing ambient golden rings, animated soundwave visualizer, high-contrast message bubbles, and action chips.
+
+### Priority 9: Official ElevenLabs Client Tools Implementation (Phase 6 Final Integration)
+- [x] **Client Tools Library (`lib/ai/elevenlabs-client-tools.ts`)**:
+  - Implemented the 5 official ElevenLabs Client Tool handlers:
+    1. `check_car_availability`: Verifies real-time vehicle availability via `/api/vehicles/[vehicleId]/availability`, posts `availabilityCard`, returns natural spoken confirmation in rupees.
+    2. `calculate_rental_price`: Authoritative server quote calculation via `/api/bookings/calculate`, posts `priceCard`, returns base + extras - discount in rupees.
+    3. `create_booking_draft`: Validates availability and quote, generates prefilled booking draft deep link, posts `bookingDraft` with `"Proceed to Secure Payment"` action.
+    4. `generate_checkout_action`: Deep links to prefilled booking checkout `/book/[vehicleId]`, posts interactive checkout card.
+    5. `lookup_booking_status`: Real-time reservation status and payment status lookup via `/api/bookings/[bookingId]`.
+- [x] **Conversational Widget Client Tools Hook (`components/ai/ai-assistant-widget.tsx`)**:
+  - Connected `clientTools` to official `@elevenlabs/react` `useConversation({ clientTools, ... })` and `startSession({ signedUrl, clientTools })`.
+  - Added interactive visual card rendering for `msg.bookingDraft` with `"Proceed to Secure Payment"` button linking directly to checkout with pre-selected dates/extras/promos.
+  - Ensured zero secret leakage (agent never handles API keys or Razorpay secrets).
+- [x] **Unit Test Suite (`tests/unit/elevenlabs-client-tools.test.ts`)**:
+  - Added 14 unit tests validating all 5 client tool functions, vehicle resolver, extras parser, and edge cases.
 
 ## Verification Metrics
 
 - Build: PASS (`npm run build` — 49/49 static & dynamic routes compiled)
 - Type Check: PASS (`npx tsc --noEmit` — 0 errors)
-- Tests: PASS (`npm test` — 26/26 test files, 227/227 unit tests pass)
+- Tests: PASS (`npm test` — 27/27 test files, 241/241 unit tests pass)
 - Architecture Suite: PASS (`tests/unit/ai-assistant-architecture.test.ts` — 9/9 tests pass)
 - Dev Server: RUNNING (`next dev --webpack` on `http://localhost:3000`)
-

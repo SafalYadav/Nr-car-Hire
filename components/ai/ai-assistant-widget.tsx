@@ -19,7 +19,13 @@ import { ConversationProvider, useConversation } from '@elevenlabs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils/cn';
-import type { SuggestedVehicle, PriceSummaryCard, AvailabilityCard } from '@/lib/services/ai-agent-service';
+import type {
+  SuggestedVehicle,
+  PriceSummaryCard,
+  AvailabilityCard,
+  BookingDraftCard,
+} from '@/lib/services/ai-agent-service';
+import { createElevenLabsClientTools } from '@/lib/ai/elevenlabs-client-tools';
 
 interface Message {
   id: string;
@@ -29,6 +35,7 @@ interface Message {
   suggestedVehicles?: SuggestedVehicle[];
   priceCard?: PriceSummaryCard;
   availabilityCard?: AvailabilityCard;
+  bookingDraft?: BookingDraftCard;
   quickActions?: string[];
 }
 
@@ -42,8 +49,18 @@ function AiAssistantWidgetInner() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // ElevenLabs Official Client Tools
+  const clientTools = React.useMemo(() => {
+    return createElevenLabsClientTools({
+      onPostMessage: (payload) => {
+        setMessages((prev) => [...prev, payload]);
+      },
+    });
+  }, []);
+
   // ElevenLabs Official Conversational AI Hook
   const conversation = useConversation({
+    clientTools,
     onConnect: () => {
       setIsConnecting(false);
       setErrorMessage(null);
@@ -141,13 +158,14 @@ function AiAssistantWidgetInner() {
 
       await conversation.startSession({
         signedUrl: data.signedUrl,
+        clientTools,
       });
     } catch (err: unknown) {
       setIsConnecting(false);
       const msg = err instanceof Error ? err.message : 'Microphone access or connection failed';
       setErrorMessage(msg);
     }
-  }, [conversation]);
+  }, [conversation, clientTools]);
 
   // Disconnect Live Session
   const endLiveConversation = useCallback(async () => {
@@ -549,6 +567,40 @@ function AiAssistantWidgetInner() {
                             <span>Estimated Total:</span>
                             <span className="text-gold font-extrabold">₹{msg.priceCard.finalAmount} INR</span>
                           </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rich Booking Draft / Interactive Checkout Card */}
+                    {msg.bookingDraft && (
+                      <div className="mt-2.5 rounded-2xl bg-background/95 border-2 border-gold/40 p-3.5 text-xs shadow-md space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 font-bold text-gold">
+                            <Sparkles className="h-4 w-4 text-gold" />
+                            <span>Booking Draft Ready</span>
+                          </div>
+                          <span className="rounded-full bg-gold/15 px-2.5 py-0.5 text-[10px] font-bold text-gold border border-gold/30">
+                            ₹{msg.bookingDraft.estimatedTotal} INR
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{msg.bookingDraft.vehicleName}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            Dates: {msg.bookingDraft.pickupDate} to {msg.bookingDraft.dropoffDate}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Pickup: {msg.bookingDraft.pickupLocation} • Return: {msg.bookingDraft.dropoffLocation}
+                          </p>
+                        </div>
+                        <div className="pt-1">
+                          <Link
+                            href={msg.bookingDraft.bookingUrl}
+                            onClick={() => setIsOpen(false)}
+                            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold py-2.5 px-4 text-xs font-bold text-midnight hover:bg-gold-light transition-all shadow-md shadow-gold/20"
+                          >
+                            <span>Proceed to Secure Payment</span>
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Link>
                         </div>
                       </div>
                     )}
